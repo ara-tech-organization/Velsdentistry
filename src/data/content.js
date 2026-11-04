@@ -1,4 +1,4 @@
-// Copy from the live site. Replace with the client brief (Google Doc) once available.
+// Copy from the client brief: "Dr Vel's Dentistry - Clear Aligner Landing Page" (page URL /clear-aligners/).
 export const clinic = {
   name: "Dr Vel's Dentistry",
   phones: ['+91 98849 19289', '+91 96553 22266', '+91 98598 55533'],
@@ -12,60 +12,124 @@ export const clinic = {
   },
 }
 
+// Optional: set to a form endpoint (Formspree, Google Apps Script, CRM webhook) to POST leads as JSON.
+// While empty, a valid enquiry opens WhatsApp with the details pre-filled so no lead is lost.
+export const formEndpoint = ''
+
+// Top menu: [label, section id]. 'home' is the hero and lead form.
 export const nav = [
-  ['Home', 'home'], ['About', 'about'], ['Treatments', 'treatments'], ['Why Us', 'why'],
-  ['Gallery', 'gallery'], ['Reviews', 'reviews'], ['Contact', 'contact'],
+  ['Options', 'options'], ['Compare', 'compare'], ['Why Us', 'why'],
+  ['Journey', 'journey'], ['Gallery', 'gallery'], ['FAQs', 'faq'], ['Contact', 'contact'],
+]
+// Page order, used by the scroll spy.
+export const sectionIds = ['home', ...nav.map(([, id]) => id)]
+
+export const hero = {
+  h1: 'Clear Aligners in Chennai',
+  headline: 'Straighten Your Teeth with a More Discreet Smile Solution.',
+  text: "Explore Invisalign and other clear aligner treatment options at Dr Vel's Dentistry. Discover a personalised approach to teeth alignment based on your dental needs.",
+  trust: [
+    ['BadgeCheck', 'Invisalign Provider'],
+    ['Clock', '20+ Years of Experience'],
+    ['HeartHandshake', 'Personalised Dental Care'],
+  ],
+}
+
+export const form = {
+  heading: 'Book Your Clear Aligner Consultation',
+  concernLabel: 'What is your dental concern?',
+  concerns: [
+    'Gaps Between Teeth',
+    'Crowded or Overlapping Teeth',
+    'Crooked Teeth',
+    'Teeth Alignment Correction',
+    'Not Sure – Need Guidance',
+  ],
+  submit: 'BOOK MY CONSULTATION',
+  success: 'Thank you for your enquiry! Our team will contact you shortly.',
+}
+
+export const options = {
+  heading: 'Explore Your Clear Aligner Options',
+  text: [
+    'Discover modern clear aligner solutions designed to gradually align your teeth with a discreet and removable treatment approach.',
+    "At Dr Vel's Dentistry, we offer Invisalign and other suitable clear aligner systems based on your dental condition and treatment requirements.",
+  ],
+  points: [
+    ['Sparkles', 'Invisalign Treatment'],
+    ['Layers', 'Other Clear Aligner Systems'],
+    ['ClipboardList', 'Personalised Treatment Planning'],
+  ],
+  cta: 'EXPLORE YOUR OPTIONS',
+}
+
+export const compare = {
+  heading: 'Metal Braces or Clear Aligners?',
+  text: 'Both options help address teeth alignment concerns. Understand their differences before choosing your treatment.',
+  braces: {
+    title: 'Metal Braces',
+    points: [
+      'Fixed brackets and wires',
+      'More visible during treatment',
+      'Remain attached to teeth',
+      'Require additional cleaning around brackets',
+      'Can address many complex cases',
+    ],
+  },
+  aligners: {
+    title: 'Clear Aligners',
+    points: [
+      'Transparent removable trays',
+      'More discreet appearance',
+      'Removable during meals',
+      'Easier routine brushing and flossing',
+      'Suitable for selected cases',
+    ],
+  },
+  closing: 'Not sure which treatment is suitable for you? Our dental team can help you understand your options following a clinical assessment.',
+  cta: 'BOOK A CONSULTATION',
+}
+
+export const why = {
+  heading: 'Your Smile. Our Personalised Care.',
+  text: "Experience personalised dental care with modern technology and treatment planning at Dr Vel's Dentistry.",
+  stats: [
+    ['CalendarClock', 20, '+', 'Years of Dental Experience'],
+    ['Stethoscope', 1, ' Lakh+', 'Successful Procedures'],
+    ['Users', 15, 'K+', 'Happy Families'],
+  ],
+  award: { year: '2025', label: 'Famdent Clinic of the Year Award' },
+}
+
+export const journey = {
+  heading: 'Your Smile Journey in 4 Steps',
+  steps: [
+    ['MessageCircle', 'Consultation', 'Discuss your teeth alignment concerns.'],
+    ['ScanLine', 'Digital Scan & Assessment', 'Understand your dental condition and treatment suitability.'],
+    ['ClipboardList', 'Personalised Treatment Plan', 'Explore the aligner system and treatment plan suitable for you.'],
+    ['CalendarCheck', 'Treatment & Monitoring', 'Begin your treatment with regular dental follow-ups.'],
+  ],
+}
+
+// Add genuine, consented patient cases here: { title, before: 'img/case1-before.jpg', after: 'img/case1-after.jpg' }.
+// Until the clinic supplies photos, the carousel shows labelled placeholders.
+export const gallery = {
+  heading: 'Smile Transformations',
+  text: 'Explore actual patient cases and their clear aligner treatment journeys.',
+  cases: [],
+  slots: 3,
+}
+
+export const faqs = [
+  ['What are clear aligners?', 'Clear aligners are transparent, removable trays designed to gradually move teeth into planned positions.'],
+  ['Is Invisalign the only clear aligner option?', 'No. Invisalign is one clear aligner system. Other aligner options may also be available depending on individual treatment requirements.'],
+  ['Are clear aligners better than metal braces?', 'Both have advantages. The suitable option depends on your dental condition, alignment complexity and clinical assessment.'],
+  ['Who can get clear aligner treatment?', 'Clear aligners may be suitable for certain alignment concerns. A dental assessment is required to determine eligibility.'],
+  ['How long does clear aligner treatment take?', 'Treatment duration varies depending on the complexity of the case and individual treatment plan.'],
+  ['How much does clear aligner treatment cost?', 'The cost depends on the treatment complexity and aligner system. Contact our clinic for a consultation and cost discussion.'],
 ]
 
-// Page order, used for the scroll spy. The booking form counts as part of Contact.
-export const sectionIds = ['home', 'about', 'treatments', 'why', 'gallery', 'reviews', 'book', 'contact']
-
-export const awards = [
-  'Service Excellence Award in Kids & Family Dental Care 2024',
-  'Clinic of the Year, Famdent 2025',
-  'Most Awarded Dental Clinic',
-  'Famdent Special Jury Award, Zone 2, Mumbai 2025',
-]
-
-export const stats = [
-  { value: 20, suffix: '+', label: 'Years of experience' },
-  { value: 100, suffix: 'K+', label: 'Successful procedures' },
-  { value: 15, suffix: 'K+', label: 'Happy families' },
-]
-
-export const pillars = [
-  ['ShieldCheck', 'Expertise', 'World-renowned specialists and clinical heads under one roof.'],
-  ['Stethoscope', 'Experience', 'Over 20 years leading corporate dental hospitals.'],
-  ['HeartHandshake', 'Ethics', 'Transparent billing and honest, personalised advice.'],
-]
-
-export const treatments = [
-  ['Geriatric Dentistry', 'geriatric.png', 'Gentle, comfort-first care for senior patients.'],
-  ['Pediatric Dentistry', 'pediatric.png', 'Friendly, fear-free dentistry for kids.'],
-  ['Aligners & Braces', 'aligners.png', 'Straighter teeth with modern, discreet options.'],
-  ['Dental Implants', 'implant.png', 'Permanent, natural-looking tooth replacement.'],
-  ['Root Canal', 'rootcanal.png', 'Painless treatment that saves your natural tooth.'],
-  ['Laser Dentistry', 'laser.png', 'Precise, minimally invasive procedures.'],
-  ['Tooth Whitening', 'whitening.png', 'Brighter shades in a single, safe visit.'],
-  ['Crowns & Bridges', 'crowns.png', 'Durable restorations that look and feel natural.'],
-  ['Wisdom Tooth Removal', 'wisdom.png', 'Careful extraction with a quick recovery.'],
-  ['Smile Design', 'smile.png', 'A personalised plan for the smile you want.'],
-  ['Gum Treatment', 'gum.png', 'Healthy gums for a healthy foundation.'],
-  ['Complete Denture', 'denture.png', 'Comfortable, well-fitted full dentures.'],
-]
-
-export const features = [
-  ['ScanFace', 'AI-assisted diagnosis', 'The first AI-empowered dental clinic in the OMR area, using a dental scanner robot.'],
-  ['ScanLine', 'Full-mouth digital X-ray', 'Low-dose digital imaging for clear, accurate diagnosis.'],
-  ['Scan', 'Intraoral scanner', 'Comfortable digital impressions, no messy moulds.'],
-  ['Truck', 'Mobile dental van', 'Door-step dentistry when you cannot come to us.'],
-]
-
-export const reviews = [
-  'Amazing experience. The doctors are very gentle, and the doctors and clinic staff are very responsible.',
-  'Dr Sakthivel is professional and caring to each of his patients. He even remembers patients\' names and their dental issues for years.',
-  'One of the best dentists in town. The staff\'s friendliness and expertise showed in the care they gave my daughter\'s braces.',
-  'The doctor and team explained the problems in a way that was understandable even to laypeople.',
-  'I had a root canal here. It was a painless process with all the advanced treatment procedures.',
-  'The care and attention I received were outstanding, from start to finish, with timely follow-ups and clear communication.',
-]
+export const final = {
+  headline: 'Ready to Explore Your Smile Options?',
+  text: "Take the first step towards understanding your teeth alignment options with personalised dental care at Dr Vel's Dentistry.",
+}

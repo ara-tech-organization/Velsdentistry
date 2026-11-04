@@ -1,36 +1,38 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
-  Phone, Mail, MapPin, Menu, X, ArrowRight, ArrowUpRight, Award, Star,
-  ShieldCheck, Stethoscope, HeartHandshake, ScanFace, ScanLine, Scan, Truck, Circle,
-  CalendarCheck, User, Trophy, Medal, Quote, BadgeCheck, ExternalLink, Send, CheckCircle2, ZoomIn,
+  Phone, ArrowRight, BadgeCheck, Clock, HeartHandshake, Sparkles, Layers, ClipboardList, CalendarClock,
+  Stethoscope, Users, Trophy, MessageCircle, ScanLine, CalendarCheck, Check, ChevronLeft, ChevronRight,
+  ChevronDown, CheckCircle2, ImageIcon, Send, MapPin, Mail, ShieldCheck, Smile, Menu, X,
 } from 'lucide-react'
-import { clinic, nav, sectionIds, awards, stats, pillars, treatments, features, reviews } from './data/content'
+import {
+  clinic, formEndpoint, nav, sectionIds, hero, form, options, compare, why, journey, gallery, faqs, final,
+} from './data/content'
 import { Reveal, Counter } from './components/Reveal'
 import { BrandIcon } from './components/BrandIcon'
 import { useScrollSpy, sectionPath } from './hooks/useScrollSpy'
 import logo from './assets/Logo.png'
 import './App.css'
 
-const iconMap = { ShieldCheck, Stethoscope, HeartHandshake, ScanFace, ScanLine, Scan, Truck }
+const iconMap = {
+  BadgeCheck, Clock, HeartHandshake, Sparkles, Layers, ClipboardList, CalendarClock, Stethoscope, Users,
+  Trophy, MessageCircle, ScanLine, CalendarCheck,
+}
 
 const Icon = ({ name, size = 24 }) => {
-  const C = iconMap[name] || Circle
+  const C = iconMap[name] || Smile
   return <C size={size} strokeWidth={1.75} aria-hidden="true" />
 }
 
 // Prefix public files with the deploy base so images load on GitHub Pages.
 const asset = (p) => `${import.meta.env.BASE_URL}${p}`
-
 const tel = (p) => `tel:${p.replace(/\s/g, '')}`
+const callNumber = clinic.phones[0]
 
 function Navbar({ active }) {
   const [open, setOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
   const [progress, setProgress] = useState(0)
-  const current = active === 'book' ? 'contact' : active
   useEffect(() => {
     const on = () => {
-      setScrolled(window.scrollY > 24)
       const max = document.documentElement.scrollHeight - window.innerHeight
       setProgress(max > 0 ? Math.min(window.scrollY / max, 1) : 0)
     }
@@ -39,19 +41,19 @@ function Navbar({ active }) {
     return () => window.removeEventListener('scroll', on)
   }, [])
   return (
-    <header className={`nav ${scrolled ? 'nav-scrolled' : ''}`}>
+    <header className="nav">
       <div className="container nav-inner">
-        <a href={sectionPath('home')} className="brand"><img src={logo} alt="Dr Vel's Dentistry" /></a>
+        <a href={sectionPath('home')} className="brand" onClick={() => setOpen(false)}><img src={logo} alt="Dr Vel's Dentistry" /></a>
         <nav className={`nav-links ${open ? 'open' : ''}`} aria-label="Main">
-          {nav.map(([l, h]) => (
-            <a key={l} href={sectionPath(h)} className={current === h ? 'active' : ''} aria-current={current === h ? 'true' : undefined} onClick={() => setOpen(false)}>{l}</a>
+          {nav.map(([l, id]) => (
+            <a key={id} href={sectionPath(id)} className={active === id ? 'active' : ''} aria-current={active === id ? 'true' : undefined} onClick={() => setOpen(false)}>{l}</a>
           ))}
-          <a href={sectionPath('book')} className="btn btn-primary nav-cta-m" onClick={() => setOpen(false)}>Book Appointment</a>
+          <a href={sectionPath('home')} className="btn btn-primary nav-cta-m" onClick={() => setOpen(false)}>Book Consultation</a>
         </nav>
         <div className="nav-actions">
-          <a href={clinic.whatsapp} className="icon-btn" aria-label="WhatsApp" target="_blank" rel="noreferrer"><BrandIcon name="whatsapp" size={20} /></a>
-          <a href={sectionPath('book')} className="btn btn-primary nav-cta"><CalendarCheck size={18} />Book Appointment</a>
-          <button className="icon-btn menu" aria-label="Toggle menu" aria-expanded={open} onClick={() => setOpen(!open)}>
+          <a href={tel(callNumber)} className="nav-call" aria-label={`Call ${callNumber}`}><Phone size={18} /><span>{callNumber}</span></a>
+          <a href={sectionPath('home')} className="btn btn-primary nav-cta"><CalendarCheck size={18} />Book Consultation</a>
+          <button className="menu" aria-label="Toggle menu" aria-expanded={open} onClick={() => setOpen(!open)}>
             {open ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
@@ -61,14 +63,91 @@ function Navbar({ active }) {
   )
 }
 
-function AwardsStrip() {
-  const items = [...awards, ...awards]
-  return (
-    <div className="strip" aria-label="Awards">
-      <div className="strip-track">
-        {items.map((a, i) => <span key={i}><Award size={16} />{a}</span>)}
+function LeadForm() {
+  const [values, setValues] = useState({ name: '', phone: '', concern: '' })
+  const [errors, setErrors] = useState({})
+  const [sending, setSending] = useState(false)
+  const [sent, setSent] = useState(false)
+  const [failed, setFailed] = useState(false)
+
+  const set = (k) => (e) => setValues((v) => ({ ...v, [k]: e.target.value }))
+
+  const validate = () => {
+    const e = {}
+    if (values.name.trim().length < 2) e.name = 'Please enter your name.'
+    if (!/^(\+?91[\s-]?)?[6-9]\d{9}$/.test(values.phone.replace(/[\s-]/g, ''))) e.phone = 'Enter a valid 10-digit mobile number.'
+    if (!values.concern) e.concern = 'Please choose a concern.'
+    return e
+  }
+
+  const submit = async (ev) => {
+    ev.preventDefault()
+    const e = validate()
+    setErrors(e)
+    if (Object.keys(e).length) return
+    setFailed(false)
+    if (!formEndpoint) {
+      const msg = `Clear aligner consultation enquiry\nName: ${values.name.trim()}\nMobile: ${values.phone.trim()}\nConcern: ${values.concern}`
+      window.open(`${clinic.whatsapp}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener')
+      setSent(true)
+      return
+    }
+    setSending(true)
+    try {
+      const res = await fetch(formEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ ...values, source: 'clear-aligners-landing' }),
+      })
+      if (!res.ok) throw new Error('bad status')
+      setSent(true)
+    } catch {
+      setFailed(true)
+    } finally {
+      setSending(false)
+    }
+  }
+
+  if (sent) {
+    return (
+      <div className="form-card sent" role="status">
+        <CheckCircle2 size={56} strokeWidth={1.5} />
+        <h3>{form.success}</h3>
+        <a href={tel(callNumber)} className="btn btn-dark"><Phone size={18} />Prefer to talk now? Call us</a>
       </div>
-    </div>
+    )
+  }
+
+  return (
+    <form className="form-card" onSubmit={submit} noValidate>
+      <h2 className="form-title">{form.heading}</h2>
+      <label>Name
+        <input value={values.name} onChange={set('name')} autoComplete="name" placeholder="Your name" aria-invalid={!!errors.name} />
+        {errors.name && <em>{errors.name}</em>}
+      </label>
+      <label>Mobile Number
+        <input value={values.phone} onChange={set('phone')} type="tel" inputMode="numeric" autoComplete="tel" placeholder="10-digit mobile number" aria-invalid={!!errors.phone} />
+        {errors.phone && <em>{errors.phone}</em>}
+      </label>
+      <label>{form.concernLabel}
+        <span className="select">
+          <select value={values.concern} onChange={set('concern')} aria-invalid={!!errors.concern}>
+            <option value="" disabled>Select your concern</option>
+            {form.concerns.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <ChevronDown size={18} aria-hidden="true" />
+        </span>
+        {errors.concern && <em>{errors.concern}</em>}
+      </label>
+      <button className="btn btn-primary btn-lg" type="submit" disabled={sending}>
+        {sending ? 'SENDING...' : form.submit}<Send size={18} />
+      </button>
+      {failed && <em className="form-fail">Could not send right now. Please call or WhatsApp us instead.</em>}
+      <div className="form-alt">
+        <a href={tel(callNumber)} className="btn btn-outline"><Phone size={17} />CALL NOW</a>
+        <a href={clinic.whatsapp} target="_blank" rel="noreferrer" className="btn btn-wa"><BrandIcon name="whatsapp" size={17} />WHATSAPP US</a>
+      </div>
+    </form>
   )
 }
 
@@ -78,74 +157,75 @@ function Hero() {
       <div className="blob b1" /><div className="blob b2" />
       <div className="container hero-grid">
         <div className="hero-copy">
-          <span className="eyebrow hero-in" style={{ '--i': 0 }}>Family and kids dentistry, Chennai</span>
-          <h1 className="hero-in" style={{ '--i': 1 }}>Ready for your <span className="grad">perfect smile?</span></h1>
-          <p className="lead hero-in" style={{ '--i': 2 }}>
-            Doctor-owned, personalised dental care with Expertise, Experience and Ethics. One clinic, no branches, and a team that remembers your name.
-          </p>
-          <div className="hero-btns hero-in" style={{ '--i': 3 }}>
-            <a href={sectionPath('book')} className="btn btn-primary btn-lg">Book Appointment <ArrowRight size={18} /></a>
-            <a href={tel(clinic.phones[0])} className="btn btn-ghost btn-lg"><Phone size={18} />Call Now</a>
-          </div>
-          <div className="stats hero-in" style={{ '--i': 4 }}>
-            {stats.map((s) => (
-              <div key={s.label}><strong><Counter value={s.value} suffix={s.suffix} /></strong><span>{s.label}</span></div>
-            ))}
-          </div>
+          <span className="eyebrow light hero-in" style={{ '--i': 0 }}>{hero.h1}</span>
+          <h1 className="hero-in" style={{ '--i': 1 }}>{hero.headline}</h1>
+          <p className="lead hero-in" style={{ '--i': 2 }}>{hero.text}</p>
+          <ul className="trust hero-in" style={{ '--i': 3 }}>
+            {hero.trust.map(([ic, t]) => <li key={t}><Icon name={ic} size={18} />{t}</li>)}
+          </ul>
         </div>
-        <div className="hero-media hero-in" style={{ '--i': 2 }}>
-          <div className="frame"><img src={asset('img/director.png')} alt="Dr Sakthivel Rajendran beside the Dr Vel's Dentistry crest" /></div>
-          <div className="float-card fc1"><Star size={18} fill="currentColor" /><div><b>121 reviews</b><small>Rated Excellent on Google</small></div></div>
+        <div id="enquire" className="hero-form hero-in" style={{ '--i': 2 }}>
+          <LeadForm />
         </div>
       </div>
     </section>
   )
 }
 
-function About() {
+function Options() {
   return (
-    <section id="about" className="section">
-      <div className="container about-grid">
-        <Reveal variant="wipe" className="about-img"><img src={asset('img/team.jpeg')} alt="Team Dr Vel's Dentistry" loading="lazy" /></Reveal>
-        <div>
-          <Reveal as="span" className="eyebrow">From the desk of the Clinical Director</Reveal>
-          <Reveal as="h2" delay={80}>Dr Sakthivel Rajendran</Reveal>
-          <Reveal as="p" delay={140}>Welcome to Dr Vel's Dentistry, with its unique formula of Expertise, Experience and Ethics. After more than 20 years leading corporate dental clinics, we returned to the concept of personalised family dentistry: doctor-owned, doctor-governed, with no branches.</Reveal>
-          <Reveal as="p" delay={200}>We have grown to a team of 20 with specialists, clinical heads and chairside assistants, and have crossed 100,000 appointments. Come and experience affordable, advanced dental care with a personal touch.</Reveal>
-          <div className="pillars">
-            {pillars.map(([ic, t, d], i) => (
-              <Reveal key={t} delay={260 + i * 90} className="pillar">
-                <span className="ico"><Icon name={ic} /></span>
-                <div><h3>{t}</h3><p>{d}</p></div>
-              </Reveal>
-            ))}
+    <section className="section" id="options">
+      <div className="container">
+        <Reveal className="opt-panel">
+          <div className="opt-body">
+            <h2>{options.heading}</h2>
+            {options.text.map((t, i) => <p key={i}>{t}</p>)}
+            <a href={sectionPath('home')} className="btn btn-primary btn-lg">{options.cta}<ArrowRight size={18} /></a>
           </div>
-        </div>
+          <ul className="opt-cards">
+            {options.points.map(([ic, t], i) => (
+              <li key={t} className="opt-card">
+                <span className="opt-ico"><Icon name={ic} size={26} /></span>
+                <b>{t}</b>
+                <span className="opt-n">0{i + 1}</span>
+              </li>
+            ))}
+          </ul>
+        </Reveal>
       </div>
     </section>
   )
 }
 
-function Treatments() {
+const CompareCard = ({ data, tone, delay }) => (
+  <Reveal delay={delay} className={`cmp-card ${tone}`}>
+    <h3>{data.title}</h3>
+    <ul>
+      {data.points.map((p) => (
+        <li key={p}>{tone === 'aligners' ? <Check size={18} /> : <span className="dot" />}{p}</li>
+      ))}
+    </ul>
+  </Reveal>
+)
+
+function Compare() {
   return (
-    <section id="treatments" className="section alt">
+    <section className="section alt" id="compare">
       <div className="container">
         <div className="head">
-          <Reveal as="span" className="eyebrow">Our treatments</Reveal>
-          <Reveal as="h2" delay={80}>Complete dental care for every age</Reveal>
+          <Reveal as="h2">{compare.heading}</Reveal>
+          <Reveal as="p" delay={80}>{compare.text}</Reveal>
         </div>
-        <div className="grid-t">
-          {treatments.map(([t, img, d], i) => (
-            <Reveal key={t} as="a" href={sectionPath('book')} delay={(i % 4) * 80} className="t-card">
-              <div className="t-img"><img src={asset(`img/${img}`)} alt={t} loading="lazy" /></div>
-              <div className="t-body">
-                <h3>{t}</h3>
-                <p>{d}</p>
-                <span className="more">View more <ArrowUpRight size={16} /></span>
-              </div>
-            </Reveal>
-          ))}
+        <Reveal variant="scale" className="cmp-img">
+          <img src={asset('img/aligners.png')} alt="Clear aligners on the left and metal braces on the right" loading="lazy" />
+          <span className="cmp-tag l">Clear Aligners</span><span className="cmp-tag r">Metal Braces</span>
+        </Reveal>
+        <div className="cmp-grid">
+          <CompareCard data={compare.braces} tone="braces" delay={0} />
+          <CompareCard data={compare.aligners} tone="aligners" delay={120} />
         </div>
+        <Reveal as="p" className="cmp-close">{compare.closing}</Reveal>
+        <Reveal className="center"><a href={sectionPath('home')} className="btn btn-dark btn-lg">{compare.cta}<ArrowRight size={18} /></a></Reveal>
       </div>
     </section>
   )
@@ -153,181 +233,156 @@ function Treatments() {
 
 function Why() {
   return (
-    <section id="why" className="section dark">
-      <div className="container">
-        <div className="head">
-          <Reveal as="span" className="eyebrow light">Why Dr Vel's Dentistry</Reveal>
-          <Reveal as="h2" delay={80}>Advanced technology, personal care</Reveal>
+    <section className="section dark" id="why">
+      <div className="container why-split">
+        <div className="why-left">
+          <Reveal as="h2">{why.heading}</Reveal>
+          <Reveal as="p" delay={80} className="why-lead">{why.text}</Reveal>
+          <ul className="why-list">
+            {why.stats.map(([ic, n, suf, l], i) => (
+              <Reveal as="li" key={l} delay={140 + i * 90} className="why-row">
+                <span className="why-ico"><Icon name={ic} size={24} /></span>
+                <strong><Counter value={n} suffix={suf} /></strong>
+                <span className="why-label">{l}</span>
+              </Reveal>
+            ))}
+          </ul>
         </div>
-        <div className="grid-f">
-          {features.map(([ic, t, d], i) => (
-            <Reveal key={t} delay={i * 90} className="f-card">
-              <span className="ico on-dark"><Icon name={ic} /></span>
+        <Reveal variant="scale" delay={120} className="why-visual">
+          <div className="why-frame">
+            <img src={asset('img/leaflet.jpg')} alt="Dr Vel's Dentistry award credentials, including Famdent Clinic of the Year 2025" loading="lazy" />
+          </div>
+          <div className="why-badge">
+            <span className="why-badge-ico"><Trophy size={22} strokeWidth={1.75} aria-hidden="true" /></span>
+            <div><b>{why.award.year}</b><small>{why.award.label}</small></div>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  )
+}
+
+function Journey() {
+  return (
+    <section className="section" id="journey">
+      <div className="container">
+        <div className="head"><Reveal as="h2">{journey.heading}</Reveal></div>
+        <ol className="steps">
+          {journey.steps.map(([ic, t, d], i) => (
+            <Reveal as="li" key={t} delay={i * 100} className="step">
+              <span className="step-ico"><Icon name={ic} size={28} /><em>{i + 1}</em></span>
               <h3>{t}</h3>
               <p>{d}</p>
             </Reveal>
           ))}
-        </div>
+        </ol>
       </div>
     </section>
   )
 }
-
-const honours = [
-  ['2025', 'Clinic of the Year', 'Famdent Special Jury Award, Zone 2, Mumbai', 'Trophy'],
-  ['2024', 'Service Excellence Award', 'Kids & Family Dental Care', 'Medal'],
-  ['2025', 'Nominated in 6 categories', 'Best Aligner Dentist, Best Dental Team, Best Pediatric Dentist and more', 'BadgeCheck'],
-]
-const honourIcons = { Trophy, Medal, BadgeCheck }
 
 function Gallery() {
-  const [zoom, setZoom] = useState(false)
+  const rail = useRef(null)
+  const slide = (dir) => {
+    const el = rail.current
+    if (el) el.scrollBy({ left: dir * (el.firstElementChild?.getBoundingClientRect().width ?? 320 + 20), behavior: 'smooth' })
+  }
+  const paused = useRef(false)
+  // Auto-advance every few seconds, looping back to the first case; pauses while the visitor hovers, touches or focuses the rail.
   useEffect(() => {
-    const k = (e) => e.key === 'Escape' && setZoom(false)
-    window.addEventListener('keydown', k)
-    return () => window.removeEventListener('keydown', k)
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined
+    const id = setInterval(() => {
+      const el = rail.current
+      if (!el || paused.current) return
+      if (el.scrollLeft + el.clientWidth >= el.scrollWidth - 4) el.scrollTo({ left: 0, behavior: 'smooth' })
+      else slide(1)
+    }, 3500)
+    return () => clearInterval(id)
   }, [])
+    const cards = gallery.cases.length
+    ? gallery.cases
+    : Array.from({ length: gallery.slots }, (_, i) => ({ title: `Patient case ${i + 1}`, pending: true }))
   return (
-    <section id="gallery" className="section who">
+    <section className="section alt" id="gallery">
       <div className="container">
         <div className="head">
-          <Reveal as="span" className="eyebrow">Who are we</Reveal>
-          <Reveal as="h2" delay={80}>Recognised for excellence in family dentistry</Reveal>
-          <Reveal as="p" delay={140}>Doctor-owned, with no branches, and honoured by the dental community for personalised care.</Reveal>
+          <Reveal as="h2">{gallery.heading}</Reveal>
+          <Reveal as="p" delay={80}>{gallery.text}</Reveal>
         </div>
-        <div className="who-grid">
-          <Reveal variant="scale" className="leaflet">
-            <button onClick={() => setZoom(true)} aria-label="Enlarge awards leaflet">
-              <img src={asset('img/leaflet.jpg')} alt="Awards and excellence leaflet" loading="lazy" />
-              <span className="zoom"><ZoomIn size={20} /></span>
-            </button>
-          </Reveal>
-          <div className="honours">
-            {honours.map(([yr, t, d, ic], i) => {
-              const C = honourIcons[ic]
-              return (
-                <Reveal key={t} delay={i * 110} className="honour">
-                  <span className="honour-ico"><C size={28} strokeWidth={1.75} aria-hidden="true" /></span>
-                  <div>
-                    <span className="honour-yr">{yr}</span>
-                    <h3>{t}</h3>
-                    <p>{d}</p>
-                  </div>
-                </Reveal>
-              )
-            })}
-            <Reveal delay={340} className="who-foot">
-              <Award size={20} /><span>Most Awarded Dental Clinic</span>
-            </Reveal>
-          </div>
-        </div>
-      </div>
-      {zoom && (
-        <div className="lightbox" role="dialog" aria-modal="true" onClick={() => setZoom(false)}>
-          <button className="icon-btn lb-x" aria-label="Close"><X size={22} /></button>
-          <img src={asset('img/leaflet.jpg')} alt="Awards and excellence leaflet" />
-        </div>
-      )}
-    </section>
-  )
-}
-
-const Stars = ({ size = 18 }) => (
-  <span className="stars">{[0, 1, 2, 3, 4].map((i) => <Star key={i} size={size} fill="currentColor" />)}</span>
-)
-
-function Reviews() {
-  const loop = [...reviews, ...reviews]
-  return (
-    <section id="reviews" className="section reviews">
-      <div className="container">
-        <div className="head">
-          <Reveal as="span" className="eyebrow light">Google reviews</Reveal>
-          <Reveal as="h2" delay={80}>Loved by families across Chennai</Reveal>
-          <Reveal delay={140} className="rev-top">
-            <strong>Excellent</strong><Stars size={20} /><span>Based on 121 Google reviews</span>
-          </Reveal>
-        </div>
-      </div>
-      <Reveal delay={200} className="mq-wrap">
-        <div className="mq">
-          <div className="mq-track">
-            {loop.map((text, idx) => (
-              <figure className="mq-card" key={idx} aria-hidden={idx >= reviews.length}>
-                <div className="mq-head">
-                  <span className="avatar"><User size={22} strokeWidth={1.75} aria-hidden="true" /></span>
-                  <span className="who-by"><b>Patient review</b><small><BadgeCheck size={14} />Verified on Google</small></span>
-                  <Quote size={26} strokeWidth={1.5} className="mq-q" aria-hidden="true" />
+        <div className="rail-wrap">
+          <button className="rail-btn l" onClick={() => slide(-1)} aria-label="Previous case"><ChevronLeft size={22} /></button>
+          <div
+            className="rail" ref={rail} tabIndex={0} aria-label="Smile transformation cases"
+            onMouseEnter={() => { paused.current = true }} onMouseLeave={() => { paused.current = false }}
+            onFocus={() => { paused.current = true }} onBlur={() => { paused.current = false }}
+            onTouchStart={() => { paused.current = true }} onTouchEnd={() => setTimeout(() => { paused.current = false }, 4000)}
+          >
+            {cards.map((c) => (
+              <figure key={c.title} className="case">
+                <div className="ba">
+                  {c.pending ? (
+                    <>
+                      <div className="ba-half"><ImageIcon size={28} strokeWidth={1.5} /><span>Before</span></div>
+                      <div className="ba-half"><ImageIcon size={28} strokeWidth={1.5} /><span>After</span></div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="ba-half"><img src={asset(c.before)} alt={`${c.title} before`} loading="lazy" /><span>Before</span></div>
+                      <div className="ba-half"><img src={asset(c.after)} alt={`${c.title} after`} loading="lazy" /><span>After</span></div>
+                    </>
+                  )}
                 </div>
-                <Stars size={14} />
-                <blockquote>{text}</blockquote>
+                <figcaption>{c.title}{c.pending && <small>Photo to be supplied by the clinic</small>}</figcaption>
               </figure>
             ))}
           </div>
+          <button className="rail-btn r" onClick={() => slide(1)} aria-label="Next case"><ChevronRight size={22} /></button>
         </div>
-      </Reveal>
-      <div className="rev-more">
-        <a className="btn btn-primary btn-lg" href="https://www.google.com/search?q=Dr+Vel%27s+Dentistry+Perumbakkam+reviews" target="_blank" rel="noreferrer">
-          Read more on Google <ExternalLink size={18} />
-        </a>
       </div>
     </section>
   )
 }
 
-function Book() {
-  const [sent, setSent] = useState(false)
-  const [errors, setErrors] = useState({})
-  const submit = (e) => {
-    e.preventDefault()
-    const f = Object.fromEntries(new FormData(e.target))
-    const er = {}
-    if (!f.first.trim()) er.first = 'Please enter your first name'
-    if (!/^[+\d][\d\s-]{7,}$/.test(f.phone.trim())) er.phone = 'Enter a valid phone number'
-    if (f.email && !/^\S+@\S+\.\S+$/.test(f.email)) er.email = 'Enter a valid email'
-    setErrors(er)
-    if (!Object.keys(er).length) setSent(true)
-  }
+function Faq() {
+  const [open, setOpen] = useState(0)
   return (
-    <section id="book" className="section book">
-      <div className="container book-grid">
-        <div>
-          <Reveal as="span" className="eyebrow light">Book appointment</Reveal>
-          <Reveal as="h2" delay={80}>Ready for your perfect smile?</Reveal>
-          <Reveal as="p" delay={140}>Leave your details and we will call you back to confirm a convenient time.</Reveal>
-          <Reveal delay={200} className="book-contact">
-            <a href={tel(clinic.phones[0])} className="contact-card">
-              <span className="contact-ico"><Phone size={22} strokeWidth={1.75} /></span>
-              <span className="contact-txt"><small>Call us</small><b>{clinic.phones[0]}</b></span>
-              <ArrowUpRight size={18} className="contact-go" />
-            </a>
-            <a href={clinic.whatsapp} target="_blank" rel="noreferrer" className="contact-card">
-              <span className="contact-ico wa"><BrandIcon name="whatsapp" size={22} /></span>
-              <span className="contact-txt"><small>WhatsApp</small><b>Chat with us</b></span>
-              <ArrowUpRight size={18} className="contact-go" />
-            </a>
-            <a href={`mailto:${clinic.email}`} className="contact-card">
-              <span className="contact-ico"><Mail size={22} strokeWidth={1.75} /></span>
-              <span className="contact-txt"><small>Email</small><b>{clinic.email}</b></span>
-              <ArrowUpRight size={18} className="contact-go" />
-            </a>
+    <section className="section" id="faq">
+      <div className="container faq-wrap">
+        <div className="faq-side">
+          <Reveal as="h2">Frequently Asked Questions</Reveal>
+          <Reveal delay={80} className="faq-cta">
+            <a href={tel(callNumber)} className="btn btn-dark"><Phone size={18} />CALL NOW</a>
+            <a href={clinic.whatsapp} target="_blank" rel="noreferrer" className="btn btn-wa"><BrandIcon name="whatsapp" size={18} />WHATSAPP US</a>
           </Reveal>
         </div>
-        <Reveal variant="scale" className="form-card">
-          {sent ? (
-            <div className="sent"><CheckCircle2 size={48} /><h3>Thank you</h3><p>We have received your request and will call you shortly.</p></div>
-          ) : (
-            <form onSubmit={submit} noValidate>
-              <div className="row">
-                <label>First name<input name="first" autoComplete="given-name" aria-invalid={!!errors.first} />{errors.first && <em>{errors.first}</em>}</label>
-                <label>Last name<input name="last" autoComplete="family-name" /></label>
-              </div>
-              <label>Phone<input name="phone" type="tel" autoComplete="tel" aria-invalid={!!errors.phone} />{errors.phone && <em>{errors.phone}</em>}</label>
-              <label>Email<input name="email" type="email" autoComplete="email" aria-invalid={!!errors.email} />{errors.email && <em>{errors.email}</em>}</label>
-              <label>Message<textarea name="message" rows="3" /></label>
-              <button className="btn btn-accent btn-lg" type="submit">Request callback <Send size={18} /></button>
-            </form>
-          )}
+        <div className="faq">
+          {faqs.map(([q, a], i) => {
+            const on = open === i
+            return (
+              <Reveal key={q} delay={i * 50} className={`faq-item ${on ? 'on' : ''}`}>
+                <button id={`faq-q-${i}`} aria-expanded={on} aria-controls={`faq-a-${i}`} onClick={() => setOpen(on ? -1 : i)}>
+                  <span>{i + 1}. {q}</span><ChevronDown size={20} aria-hidden="true" />
+                </button>
+                <div id={`faq-a-${i}`} role="region" aria-labelledby={`faq-q-${i}`} className="faq-a"><div><p>{a}</p></div></div>
+              </Reveal>
+            )
+          })}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function Final() {
+  return (
+    <section className="section dark final" id="contact">
+      <div className="container center">
+        <Reveal as="h2">{final.headline}</Reveal>
+        <Reveal as="p" delay={80} className="final-text">{final.text}</Reveal>
+        <Reveal delay={160} className="final-btns">
+          <a href={sectionPath('home')} className="btn btn-primary btn-lg"><CalendarCheck size={18} />BOOK A CONSULTATION</a>
+          <a href={tel(callNumber)} className="btn btn-ghost btn-lg"><Phone size={18} />CALL NOW</a>
+          <a href={clinic.whatsapp} target="_blank" rel="noreferrer" className="btn btn-wa btn-lg"><BrandIcon name="whatsapp" size={18} />WHATSAPP US</a>
         </Reveal>
       </div>
     </section>
@@ -336,42 +391,42 @@ function Book() {
 
 function Footer() {
   return (
-    <footer id="contact" className="footer">
-      <div className="container foot-grid">
-        <div>
-          <img src={logo} alt="Dr Vel's Dentistry" className="foot-logo" />
-          <p>Kids & Family Dentistry. Expertise, Experience and Ethics.</p>
-          <div className="social">
-            <a href={clinic.social.facebook} aria-label="Facebook" target="_blank" rel="noreferrer"><BrandIcon name="facebook" /></a>
-            <a href={clinic.social.instagram} aria-label="Instagram" target="_blank" rel="noreferrer"><BrandIcon name="instagram" /></a>
-            <a href={clinic.whatsapp} aria-label="WhatsApp" target="_blank" rel="noreferrer"><BrandIcon name="whatsapp" /></a>
-          </div>
-        </div>
+    <footer className="footer">
+      <div className="container foot">
+        <img src={asset('img/logo-footer.png')} alt="Dr Vel's Dentistry" className="foot-logo" />
         <div className="foot-info">
-          <h3>Contact</h3>
-          <p><MapPin size={18} />{clinic.address}</p>
-          {clinic.phones.map((p) => <a key={p} href={tel(p)}><Phone size={18} />{p}</a>)}
-          <a href={`mailto:${clinic.email}`}><Mail size={18} />{clinic.email}</a>
+          <p><MapPin size={16} />{clinic.address}</p>
+          <a href={tel(callNumber)}><Phone size={16} />{clinic.phones.join('  |  ')}</a>
+          <a href={`mailto:${clinic.email}`}><Mail size={16} />{clinic.email}</a>
         </div>
-        <iframe className="map" title="Clinic location" src={clinic.map} loading="lazy" />
+        <div className="social">
+          <a href={clinic.social.facebook} target="_blank" rel="noreferrer" aria-label="Facebook"><BrandIcon name="facebook" size={18} /></a>
+          <a href={clinic.social.instagram} target="_blank" rel="noreferrer" aria-label="Instagram"><BrandIcon name="instagram" size={18} /></a>
+          <a href={clinic.whatsapp} target="_blank" rel="noreferrer" aria-label="WhatsApp"><BrandIcon name="whatsapp" size={18} /></a>
+        </div>
       </div>
-      <div className="container copy">&copy; {new Date().getFullYear()} Dr Vel's Dentistry. All rights reserved.</div>
+      <p className="copy"><ShieldCheck size={14} /> Treatment suitability is confirmed after a clinical assessment. &copy; {new Date().getFullYear()} Dr Vel's Dentistry.</p>
     </footer>
+  )
+}
+
+// Mobile-first conversion bar: always-visible call, WhatsApp and book actions.
+function StickyBar() {
+  return (
+    <div className="sticky-bar">
+      <a href={tel(callNumber)} className="sb call"><Phone size={18} />Call</a>
+      <a href={clinic.whatsapp} target="_blank" rel="noreferrer" className="sb wa"><BrandIcon name="whatsapp" size={18} />WhatsApp</a>
+      <a href={sectionPath('home')} className="sb book"><CalendarCheck size={18} />Book</a>
+    </div>
   )
 }
 
 function WhatsAppFloat() {
   return (
-    <a
-      className="wa-float"
-      href={clinic.whatsapp}
-      target="_blank"
-      rel="noreferrer"
-      aria-label="Chat with us on WhatsApp"
-    >
+    <a href={clinic.whatsapp} target="_blank" rel="noreferrer" className="wa-float" aria-label="Chat on WhatsApp">
       <span className="wa-pulse" aria-hidden="true" />
       <BrandIcon name="whatsapp" size={30} />
-      <span className="wa-tip">Chat with us</span>
+      <span className="wa-tip">Chat with us on WhatsApp</span>
     </a>
   )
 }
@@ -380,12 +435,19 @@ export default function App() {
   const active = useScrollSpy(sectionIds)
   return (
     <>
-      <AwardsStrip />
       <Navbar active={active} />
       <main>
-        <Hero /><About /><Treatments /><Why /><Gallery /><Reviews /><Book />
+        <Hero />
+        <Options />
+        <Compare />
+        <Why />
+        <Journey />
+        <Gallery />
+        <Faq />
+        <Final />
       </main>
       <Footer />
+      <StickyBar />
       <WhatsAppFloat />
     </>
   )
