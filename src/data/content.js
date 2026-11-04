@@ -13,8 +13,8 @@ export const clinic = {
 }
 
 export const nav = [
-  ['Home', '#home'], ['About', '#about'], ['Treatments', '#treatments'], ['Why Us', '#why'],
-  ['Gallery', '#gallery'], ['Reviews', '#reviews'], ['Contact', '#contact'],
+  ['Home', 'home'], ['About', 'about'], ['Treatments', 'treatments'], ['Why Us', 'why'],
+  ['Gallery', 'gallery'], ['Reviews', 'reviews'], ['Contact', 'contact'],
 ]
 
 // Page order, used for the scroll spy. The booking form counts as part of Contact.

@@ -7,7 +7,7 @@ import {
 import { clinic, nav, sectionIds, awards, stats, pillars, treatments, features, reviews } from './data/content'
 import { Reveal, Counter } from './components/Reveal'
 import { BrandIcon } from './components/BrandIcon'
-import { useScrollSpy } from './hooks/useScrollSpy'
+import { useScrollSpy, sectionPath } from './hooks/useScrollSpy'
 import logo from './assets/Logo.png'
 import './App.css'
 
@@ -41,16 +41,16 @@ function Navbar({ active }) {
   return (
     <header className={`nav ${scrolled ? 'nav-scrolled' : ''}`}>
       <div className="container nav-inner">
-        <a href="#home" className="brand"><img src={logo} alt="Dr Vel's Dentistry" /></a>
+        <a href={sectionPath('home')} className="brand"><img src={logo} alt="Dr Vel's Dentistry" /></a>
         <nav className={`nav-links ${open ? 'open' : ''}`} aria-label="Main">
           {nav.map(([l, h]) => (
-            <a key={l} href={h} className={current === h.slice(1) ? 'active' : ''} aria-current={current === h.slice(1) ? 'true' : undefined} onClick={() => setOpen(false)}>{l}</a>
+            <a key={l} href={sectionPath(h)} className={current === h ? 'active' : ''} aria-current={current === h ? 'true' : undefined} onClick={() => setOpen(false)}>{l}</a>
           ))}
-          <a href="#book" className="btn btn-primary nav-cta-m" onClick={() => setOpen(false)}>Book Appointment</a>
+          <a href={sectionPath('book')} className="btn btn-primary nav-cta-m" onClick={() => setOpen(false)}>Book Appointment</a>
         </nav>
         <div className="nav-actions">
           <a href={clinic.whatsapp} className="icon-btn" aria-label="WhatsApp" target="_blank" rel="noreferrer"><BrandIcon name="whatsapp" size={20} /></a>
-          <a href="#book" className="btn btn-primary nav-cta"><CalendarCheck size={18} />Book Appointment</a>
+          <a href={sectionPath('book')} className="btn btn-primary nav-cta"><CalendarCheck size={18} />Book Appointment</a>
           <button className="icon-btn menu" aria-label="Toggle menu" aria-expanded={open} onClick={() => setOpen(!open)}>
             {open ? <X size={22} /> : <Menu size={22} />}
           </button>
@@ -84,7 +84,7 @@ function Hero() {
             Doctor-owned, personalised dental care with Expertise, Experience and Ethics. One clinic, no branches, and a team that remembers your name.
           </p>
           <div className="hero-btns hero-in" style={{ '--i': 3 }}>
-            <a href="#book" className="btn btn-primary btn-lg">Book Appointment <ArrowRight size={18} /></a>
+            <a href={sectionPath('book')} className="btn btn-primary btn-lg">Book Appointment <ArrowRight size={18} /></a>
             <a href={tel(clinic.phones[0])} className="btn btn-ghost btn-lg"><Phone size={18} />Call Now</a>
           </div>
           <div className="stats hero-in" style={{ '--i': 4 }}>
@@ -136,7 +136,7 @@ function Treatments() {
         </div>
         <div className="grid-t">
           {treatments.map(([t, img, d], i) => (
-            <Reveal key={t} as="a" href="#book" delay={(i % 4) * 80} className="t-card">
+            <Reveal key={t} as="a" href={sectionPath('book')} delay={(i % 4) * 80} className="t-card">
               <div className="t-img"><img src={asset(`img/${img}`)} alt={t} loading="lazy" /></div>
               <div className="t-body">
                 <h3>{t}</h3>
