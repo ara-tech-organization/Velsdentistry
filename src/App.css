@@ -299,3 +299,21 @@ h3 { font-size: 1.25rem; font-weight: 600; }
   .form-card { padding: 22px; }
   .float-card { padding: 8px 12px; }
 }
+
+/* Floating WhatsApp */
+.wa-float {
+  position: fixed; right: 22px; bottom: 22px; z-index: 40; width: 60px; height: 60px; border-radius: 50%;
+  display: grid; place-items: center; background: #25d366; color: #fff; box-shadow: 0 12px 28px rgba(37, 211, 102, 0.45);
+  animation: waIn 0.8s var(--ease) 1.2s both; transition: transform 0.4s var(--ease), box-shadow 0.4s;
+}
+.wa-float:hover { transform: translateY(-4px) scale(1.06); box-shadow: 0 16px 34px rgba(37, 211, 102, 0.55); }
+.wa-float:active { transform: scale(0.96); }
+.wa-pulse { position: absolute; inset: 0; border-radius: 50%; background: #25d366; z-index: -1; animation: waPulse 2.4s ease-out infinite; }
+.wa-tip {
+  position: absolute; right: 72px; top: 50%; transform: translate(10px, -50%); white-space: nowrap; padding: 8px 14px; border-radius: 999px;
+  background: #111; color: #fff; font-size: 0.82rem; font-weight: 500; opacity: 0; pointer-events: none; transition: opacity 0.3s, transform 0.4s var(--ease);
+}
+.wa-float:hover .wa-tip { opacity: 1; transform: translate(0, -50%); }
+@keyframes waPulse { from { transform: scale(1); opacity: 0.5; } to { transform: scale(1.7); opacity: 0; } }
+@keyframes waIn { from { opacity: 0; transform: translateY(24px) scale(0.6); } to { opacity: 1; transform: none; } }
+@media (max-width: 560px) { .wa-float { right: 16px; bottom: 16px; width: 54px; height: 54px; } .wa-tip { display: none; } }

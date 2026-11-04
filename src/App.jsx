@@ -18,6 +18,9 @@ const Icon = ({ name, size = 24 }) => {
   return <C size={size} strokeWidth={1.75} aria-hidden="true" />
 }
 
+// Prefix public files with the deploy base so images load on GitHub Pages.
+const asset = (p) => `${import.meta.env.BASE_URL}${p}`
+
 const tel = (p) => `tel:${p.replace(/\s/g, '')}`
 
 function Navbar({ active }) {
@@ -91,7 +94,7 @@ function Hero() {
           </div>
         </div>
         <div className="hero-media hero-in" style={{ '--i': 2 }}>
-          <div className="frame"><img src="/img/director.png" alt="Dr Sakthivel Rajendran beside the Dr Vel's Dentistry crest" /></div>
+          <div className="frame"><img src={asset('img/director.png')} alt="Dr Sakthivel Rajendran beside the Dr Vel's Dentistry crest" /></div>
           <div className="float-card fc1"><Star size={18} fill="currentColor" /><div><b>121 reviews</b><small>Rated Excellent on Google</small></div></div>
         </div>
       </div>
@@ -103,7 +106,7 @@ function About() {
   return (
     <section id="about" className="section">
       <div className="container about-grid">
-        <Reveal variant="wipe" className="about-img"><img src="/img/team.jpeg" alt="Team Dr Vel's Dentistry" loading="lazy" /></Reveal>
+        <Reveal variant="wipe" className="about-img"><img src={asset('img/team.jpeg')} alt="Team Dr Vel's Dentistry" loading="lazy" /></Reveal>
         <div>
           <Reveal as="span" className="eyebrow">From the desk of the Clinical Director</Reveal>
           <Reveal as="h2" delay={80}>Dr Sakthivel Rajendran</Reveal>
@@ -134,7 +137,7 @@ function Treatments() {
         <div className="grid-t">
           {treatments.map(([t, img, d], i) => (
             <Reveal key={t} as="a" href="#book" delay={(i % 4) * 80} className="t-card">
-              <div className="t-img"><img src={`/img/${img}`} alt={t} loading="lazy" /></div>
+              <div className="t-img"><img src={asset(`img/${img}`)} alt={t} loading="lazy" /></div>
               <div className="t-body">
                 <h3>{t}</h3>
                 <p>{d}</p>
@@ -195,7 +198,7 @@ function Gallery() {
         <div className="who-grid">
           <Reveal variant="scale" className="leaflet">
             <button onClick={() => setZoom(true)} aria-label="Enlarge awards leaflet">
-              <img src="/img/leaflet.jpg" alt="Awards and excellence leaflet" loading="lazy" />
+              <img src={asset('img/leaflet.jpg')} alt="Awards and excellence leaflet" loading="lazy" />
               <span className="zoom"><ZoomIn size={20} /></span>
             </button>
           </Reveal>
@@ -222,7 +225,7 @@ function Gallery() {
       {zoom && (
         <div className="lightbox" role="dialog" aria-modal="true" onClick={() => setZoom(false)}>
           <button className="icon-btn lb-x" aria-label="Close"><X size={22} /></button>
-          <img src="/img/leaflet.jpg" alt="Awards and excellence leaflet" />
+          <img src={asset('img/leaflet.jpg')} alt="Awards and excellence leaflet" />
         </div>
       )}
     </section>
@@ -357,6 +360,22 @@ function Footer() {
   )
 }
 
+function WhatsAppFloat() {
+  return (
+    <a
+      className="wa-float"
+      href={clinic.whatsapp}
+      target="_blank"
+      rel="noreferrer"
+      aria-label="Chat with us on WhatsApp"
+    >
+      <span className="wa-pulse" aria-hidden="true" />
+      <BrandIcon name="whatsapp" size={30} />
+      <span className="wa-tip">Chat with us</span>
+    </a>
+  )
+}
+
 export default function App() {
   const active = useScrollSpy(sectionIds)
   return (
@@ -367,6 +386,7 @@ export default function App() {
         <Hero /><About /><Treatments /><Why /><Gallery /><Reviews /><Book />
       </main>
       <Footer />
+      <WhatsAppFloat />
     </>
   )
 }
