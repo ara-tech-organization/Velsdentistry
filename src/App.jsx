@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import {
   Phone, ArrowRight, BadgeCheck, Clock, HeartHandshake, Sparkles, Layers, ClipboardList, CalendarClock,
   Stethoscope, Users, Trophy, MessageCircle, ScanLine, CalendarCheck, Check, ChevronLeft, ChevronRight,
-  ChevronDown, CheckCircle2, Send, MapPin, Mail, ShieldCheck, Smile, Menu, X,
+  ChevronDown, CheckCircle2, Send, ZoomIn, MapPin, Mail, ShieldCheck, Smile, Menu, X,
 } from 'lucide-react'
 import {
   clinic, formEndpoint, nav, sectionIds, hero, form, options, compare, why, journey, gallery, faqs, final,
@@ -48,11 +48,11 @@ function Navbar({ active }) {
           {nav.map(([l, id]) => (
             <a key={id} href={sectionPath(id)} className={active === id ? 'active' : ''} aria-current={active === id ? 'true' : undefined} onClick={() => setOpen(false)}>{l}</a>
           ))}
-          <a href={sectionPath('home')} className="btn btn-primary nav-cta-m" onClick={() => setOpen(false)}>Book Consultation</a>
+          <a href={sectionPath('enquire')} className="btn btn-primary nav-cta-m" onClick={() => setOpen(false)}>Book Consultation</a>
         </nav>
         <div className="nav-actions">
           <a href={tel(callNumber)} className="nav-call" aria-label={`Call ${callNumber}`}><Phone size={18} /><span>{callNumber}</span></a>
-          <a href={sectionPath('home')} className="btn btn-primary nav-cta"><CalendarCheck size={18} />Book Consultation</a>
+          <a href={sectionPath('enquire')} className="btn btn-primary nav-cta"><CalendarCheck size={18} />Book Consultation</a>
           <button className="menu" aria-label="Toggle menu" aria-expanded={open} onClick={() => setOpen(!open)}>
             {open ? <X size={22} /> : <Menu size={22} />}
           </button>
@@ -153,11 +153,13 @@ function LeadForm() {
 
 function Hero() {
   return (
-    <section id="home" className="hero">
+    <>
+    <section className="top-section"><TopGallery /></section>
+    <section className="hero">
       <div className="blob b1" /><div className="blob b2" />
       <div className="container hero-grid">
         <div className="hero-copy">
-          <span className="eyebrow light hero-in" style={{ '--i': 0 }}>{hero.h1}</span>
+          <span className="eyebrow hero-in" style={{ '--i': 0 }}>{hero.h1}</span>
           <h1 className="hero-in" style={{ '--i': 1 }}>{hero.headline}</h1>
           <p className="lead hero-in" style={{ '--i': 2 }}>{hero.text}</p>
           <ul className="trust hero-in" style={{ '--i': 3 }}>
@@ -169,6 +171,7 @@ function Hero() {
         </div>
       </div>
     </section>
+    </>
   )
 }
 
@@ -180,7 +183,7 @@ function Options() {
           <div className="opt-body">
             <h2>{options.heading}</h2>
             {options.text.map((t, i) => <p key={i}>{t}</p>)}
-            <a href={sectionPath('home')} className="btn btn-primary btn-lg">{options.cta}<ArrowRight size={18} /></a>
+            <a href={sectionPath('enquire')} className="btn btn-primary btn-lg">{options.cta}<ArrowRight size={18} /></a>
           </div>
           <ul className="opt-cards">
             {options.points.map(([ic, t], i) => (
@@ -217,15 +220,14 @@ function Compare() {
           <Reveal as="p" delay={80}>{compare.text}</Reveal>
         </div>
         <Reveal variant="scale" className="cmp-img">
-          <img src={asset('img/aligners.png')} alt="Clear aligners on the left and metal braces on the right" loading="lazy" />
-          <span className="cmp-tag l">Clear Aligners</span><span className="cmp-tag r">Metal Braces</span>
+          <img src={asset('img/compare.jpg')} alt="Clear aligners on the left and metal braces on the right" loading="lazy" />
         </Reveal>
         <div className="cmp-grid">
           <CompareCard data={compare.braces} tone="braces" delay={0} />
           <CompareCard data={compare.aligners} tone="aligners" delay={120} />
         </div>
         <Reveal as="p" className="cmp-close">{compare.closing}</Reveal>
-        <Reveal className="center"><a href={sectionPath('home')} className="btn btn-dark btn-lg">{compare.cta}<ArrowRight size={18} /></a></Reveal>
+        <Reveal className="center"><a href={sectionPath('enquire')} className="btn btn-dark btn-lg">{compare.cta}<ArrowRight size={18} /></a></Reveal>
       </div>
     </section>
   )
@@ -281,14 +283,87 @@ function Journey() {
   )
 }
 
-function Gallery() {
+// Shared pop-up behaviour: focus the close button, close on Esc, and lock page scroll while open.
+function usePopup(onClose) {
+  const closeRef = useRef(null)
+  useEffect(() => {
+    closeRef.current?.focus()
+    const onKey = (e) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', onKey)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = prev }
+  }, [onClose])
+  return closeRef
+}
+
+function CasePopup({ item, onClose }) {
+  const closeRef = usePopup(onClose)
+  const msg = encodeURIComponent("Hi Dr Vel's Dentistry, I saw the smile transformations and would like a clear aligner consultation.")
+  return (
+    <div className="popup" role="dialog" aria-modal="true" aria-label={item.title} onClick={onClose}>
+      <div className="popup-card" onClick={(e) => e.stopPropagation()}>
+        <button ref={closeRef} className="popup-x" onClick={onClose} aria-label="Close"><X size={20} /></button>
+        <div className="popup-img"><img src={item.image} alt={item.alt} /></div>
+        <div className="popup-body">
+          <h3>{item.title}</h3>
+          <p>Want a result like this? Talk to our team about your own clear aligner options.</p>
+          <div className="popup-btns">
+            <a href={tel(callNumber)} className="btn btn-dark"><Phone size={18} />CALL NOW</a>
+            <a href={`${clinic.whatsapp}?text=${msg}`} target="_blank" rel="noreferrer" className="btn btn-wa"><BrandIcon name="whatsapp" size={18} />WHATSAPP US</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Welcome pop-up with call and WhatsApp buttons. Opens on the first visit and on every refresh.
+function WelcomePopup() {
+  const [open, setOpen] = useState(false)
+  useEffect(() => {
+    const t = setTimeout(() => setOpen(true), 1000)
+    return () => clearTimeout(t)
+  }, [])
+  const close = () => setOpen(false)
+  if (!open) return null
+  return <WelcomeCard onClose={close} />
+}
+
+function WelcomeCard({ onClose }) {
+  const closeRef = usePopup(onClose)
+  const msg = encodeURIComponent("Hi Dr Vel's Dentistry, I would like to book a clear aligner consultation.")
+  return (
+    <div className="popup" role="dialog" aria-modal="true" aria-labelledby="welcome-title" onClick={onClose}>
+      <div className="popup-card compact" onClick={(e) => e.stopPropagation()}>
+        <button ref={closeRef} className="popup-x" onClick={onClose} aria-label="Close"><X size={20} /></button>
+        <div className="wp-head">
+          <span className="eyebrow light">{hero.h1}</span>
+          <h3 id="welcome-title">{form.heading}</h3>
+        </div>
+        <div className="wp-body">
+          <p>{final.text}</p>
+          <div className="wp-actions">
+            <a href={tel(callNumber)} className="btn btn-dark"><Phone size={18} />CALL NOW</a>
+            <a href={`${clinic.whatsapp}?text=${msg}`} target="_blank" rel="noreferrer" className="btn btn-wa"><BrandIcon name="whatsapp" size={18} />WHATSAPP</a>
+          </div>
+          <a href={sectionPath('enquire')} className="btn btn-primary btn-lg wp-book" onClick={onClose}><CalendarCheck size={18} />BOOK A CONSULTATION</a>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Smile Transformations carousel. Sits at the very top of the page, above the lead form.
+function TopGallery() {
   const rail = useRef(null)
+  const paused = useRef(false)
+  const [openCase, setOpenCase] = useState(null)
   const slide = (dir) => {
     const el = rail.current
     if (el) el.scrollBy({ left: dir * (el.firstElementChild?.getBoundingClientRect().width ?? 320 + 20), behavior: 'smooth' })
   }
-  const paused = useRef(false)
-  // Auto-advance every few seconds, looping back to the first case; pauses while the visitor hovers, touches or focuses the rail.
+  // Auto-advance every few seconds, looping back to the first case; pauses while the visitor hovers, touches, focuses the rail or has a photo open.
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined
     const id = setInterval(() => {
@@ -299,10 +374,12 @@ function Gallery() {
     }, 3500)
     return () => clearInterval(id)
   }, [])
+  const open = (c) => { paused.current = true; setOpenCase(c) }
+  const close = () => { paused.current = false; setOpenCase(null) }
   return (
-    <section className="section alt" id="gallery">
+    <div id="home" className="top-gallery">
       <div className="container">
-        <div className="head">
+        <div className="tg-head">
           <Reveal as="h2">{gallery.heading}</Reveal>
           <Reveal as="p" delay={80}>{gallery.text}</Reveal>
         </div>
@@ -310,15 +387,16 @@ function Gallery() {
           <button className="rail-btn l" onClick={() => slide(-1)} aria-label="Previous case"><ChevronLeft size={22} /></button>
           <div
             className="rail" ref={rail} tabIndex={0} aria-label="Smile transformation cases"
-            onMouseEnter={() => { paused.current = true }} onMouseLeave={() => { paused.current = false }}
-            onFocus={() => { paused.current = true }} onBlur={() => { paused.current = false }}
+            onMouseEnter={() => { paused.current = true }} onMouseLeave={() => { paused.current = !!openCase }}
+            onFocus={() => { paused.current = true }} onBlur={() => { paused.current = !!openCase }}
             onTouchStart={() => { paused.current = true }} onTouchEnd={() => setTimeout(() => { paused.current = false }, 4000)}
           >
             {gallery.cases.map((c) => (
               <figure key={c.title} className="case">
-                <div className={`case-img ${c.fit === 'contain' ? 'contain' : ''}`}>
+                <button className={`case-img ${c.fit === 'contain' ? 'contain' : ''}`} onClick={() => open(c)} aria-label={`View ${c.title} larger`}>
                   <img src={c.image} alt={c.alt} loading="lazy" />
-                </div>
+                  <span className="case-zoom"><ZoomIn size={18} /></span>
+                </button>
                 <figcaption>{c.title}</figcaption>
               </figure>
             ))}
@@ -326,7 +404,8 @@ function Gallery() {
           <button className="rail-btn r" onClick={() => slide(1)} aria-label="Next case"><ChevronRight size={22} /></button>
         </div>
       </div>
-    </section>
+      {openCase && <CasePopup item={openCase} onClose={close} />}
+    </div>
   )
 }
 
@@ -367,7 +446,7 @@ function Final() {
         <Reveal as="h2">{final.headline}</Reveal>
         <Reveal as="p" delay={80} className="final-text">{final.text}</Reveal>
         <Reveal delay={160} className="final-btns">
-          <a href={sectionPath('home')} className="btn btn-primary btn-lg"><CalendarCheck size={18} />BOOK A CONSULTATION</a>
+          <a href={sectionPath('enquire')} className="btn btn-primary btn-lg"><CalendarCheck size={18} />BOOK A CONSULTATION</a>
           <a href={tel(callNumber)} className="btn btn-ghost btn-lg"><Phone size={18} />CALL NOW</a>
           <a href={clinic.whatsapp} target="_blank" rel="noreferrer" className="btn btn-wa btn-lg"><BrandIcon name="whatsapp" size={18} />WHATSAPP US</a>
         </Reveal>
@@ -403,7 +482,7 @@ function StickyBar() {
     <div className="sticky-bar">
       <a href={tel(callNumber)} className="sb call"><Phone size={18} />Call</a>
       <a href={clinic.whatsapp} target="_blank" rel="noreferrer" className="sb wa"><BrandIcon name="whatsapp" size={18} />WhatsApp</a>
-      <a href={sectionPath('home')} className="sb book"><CalendarCheck size={18} />Book</a>
+      <a href={sectionPath('enquire')} className="sb book"><CalendarCheck size={18} />Book</a>
     </div>
   )
 }
@@ -429,13 +508,13 @@ export default function App() {
         <Compare />
         <Why />
         <Journey />
-        <Gallery />
         <Faq />
         <Final />
       </main>
       <Footer />
       <StickyBar />
       <WhatsAppFloat />
+      <WelcomePopup />
     </>
   )
 }

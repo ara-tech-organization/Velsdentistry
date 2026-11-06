@@ -24,10 +24,11 @@ export const formEndpoint = ''
 // Top menu: [label, section id]. 'home' is the hero and lead form.
 export const nav = [
   ['Options', 'options'], ['Compare', 'compare'], ['Why Us', 'why'],
-  ['Journey', 'journey'], ['Gallery', 'gallery'], ['FAQs', 'faq'], ['Contact', 'contact'],
+  ['Journey', 'journey'], ['FAQs', 'faq'], ['Contact', 'contact'],
 ]
 // Page order, used by the scroll spy.
-export const sectionIds = ['home', ...nav.map(([, id]) => id)]
+// 'home' is the gallery strip at the top, 'enquire' the lead form below it.
+export const sectionIds = ['home', 'enquire', ...nav.map(([, id]) => id)]
 
 export const hero = {
   h1: 'Clear Aligners in Chennai',
