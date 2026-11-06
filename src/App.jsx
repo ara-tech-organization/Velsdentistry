@@ -377,7 +377,7 @@ function CasePopup({ item, onClose }) {
 function WelcomePopup() {
   const [open, setOpen] = useState(false)
   useEffect(() => {
-    const t = setTimeout(() => setOpen(true), 1000)
+    const t = setTimeout(() => setOpen(true), 5000)
     return () => clearTimeout(t)
   }, [])
   const close = () => setOpen(false)
