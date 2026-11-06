@@ -33,6 +33,8 @@ export const sectionIds = ['home', 'enquire', ...nav.map(([, id]) => id)]
 export const hero = {
   h1: 'Clear Aligners in Chennai',
   headline: 'Straighten Your Teeth with a More Discreet Smile Solution.',
+  // Same headline, split for display; the middle line takes the accent colour.
+  headlineLines: ['Straighten Your Teeth', 'with a More Discreet', 'Smile Solution.'],
   text: "Explore Invisalign and other clear aligner treatment options at Dr Vel's Dentistry. Discover a personalised approach to teeth alignment based on your dental needs.",
   trust: [
     ['BadgeCheck', 'Invisalign Provider'],
@@ -118,14 +120,13 @@ export const journey = {
 }
 
 // Patient cases from the clinic. Each image is already a before/after pair, so one image per case.
-// fit: 'contain' keeps a wide photo whole instead of cropping it to the square frame.
 // Add more as { title, image, alt }. Patient consent for marketing use must be on file before publishing.
 export const gallery = {
   heading: 'Smile Transformations',
   text: 'Explore actual patient cases and their clear aligner treatment journeys.',
   cases: [
     { title: 'Smile transformation 1', image: case1, alt: 'Crowded front teeth before treatment and straightened teeth after treatment' },
-    { title: 'Smile transformation 2', image: case2, alt: 'Side-profile smile with a gap between the front teeth, before and after treatment', fit: 'contain' },
+    { title: 'Smile transformation 2', image: case2, alt: 'Side-profile smile with a gap between the front teeth, before and after treatment' },
     { title: 'Smile transformation 3', image: case3, alt: 'Uneven, crooked front teeth before treatment and an even, aligned smile after treatment' },
     { title: 'Smile transformation 4', image: case4, alt: 'Spaced, uneven front teeth before treatment and an even, aligned smile after treatment' },
   ],

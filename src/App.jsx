@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import {
   Phone, ArrowRight, BadgeCheck, Clock, HeartHandshake, Sparkles, Layers, ClipboardList, CalendarClock,
   Stethoscope, Users, Trophy, MessageCircle, ScanLine, CalendarCheck, Check, ChevronLeft, ChevronRight,
-  ChevronDown, CheckCircle2, Send, ZoomIn, MapPin, Mail, ShieldCheck, Smile, Menu, X,
+  ChevronDown, CheckCircle2, ArrowUpRight, User, ZoomIn, MapPin, Mail, ShieldCheck, Smile, Menu, X,
 } from 'lucide-react'
 import {
   clinic, formEndpoint, nav, sectionIds, hero, form, options, compare, why, journey, gallery, faqs, final,
@@ -63,8 +63,72 @@ function Navbar({ active }) {
   )
 }
 
+// Styled replacement for the native <select>: click or keyboard (arrows, Home/End, Enter, Space, Esc, Tab).
+function Dropdown({ labelledBy, placeholder, options, value, onChange, invalid }) {
+  const [open, setOpen] = useState(false)
+  const [active, setActive] = useState(0)
+  const wrap = useRef(null)
+  const listId = useId()
+
+  useEffect(() => {
+    if (!open) return undefined
+    const away = (e) => { if (wrap.current && !wrap.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', away)
+    return () => document.removeEventListener('mousedown', away)
+  }, [open])
+
+  const show = () => { setActive(Math.max(0, options.indexOf(value))); setOpen(true) }
+  const pick = (o) => { onChange(o); setOpen(false) }
+
+  const onKeyDown = (e) => {
+    if (e.key === 'Tab') { setOpen(false); return }
+    if (e.key === 'Escape') { if (open) { e.preventDefault(); e.stopPropagation(); setOpen(false) } return }
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault()
+      if (!open) { show(); return }
+      setActive((n) => (n + (e.key === 'ArrowDown' ? 1 : -1) + options.length) % options.length)
+    } else if (e.key === 'Home' || e.key === 'End') {
+      if (!open) return
+      e.preventDefault()
+      setActive(e.key === 'Home' ? 0 : options.length - 1)
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      if (open) pick(options[active])
+      else show()
+    }
+  }
+
+  return (
+    <div className={`dd ${open ? 'open' : ''}`} ref={wrap}>
+      <button
+        type="button" className={`field dd-btn ${invalid ? 'err' : ''}`} role="combobox"
+        aria-haspopup="listbox" aria-expanded={open} aria-controls={listId} aria-labelledby={labelledBy}
+        aria-activedescendant={open ? `${listId}-${active}` : undefined} aria-invalid={invalid}
+        onClick={() => (open ? setOpen(false) : show())} onKeyDown={onKeyDown}
+      >
+        <Smile size={18} aria-hidden="true" />
+        <span className={value ? 'dd-value' : 'dd-placeholder'}>{value || placeholder}</span>
+        <ChevronDown size={18} aria-hidden="true" className="chev" />
+      </button>
+      {open && (
+        <ul id={listId} className="dd-list" role="listbox" aria-labelledby={labelledBy}>
+          {options.map((o, n) => (
+            <li
+              key={o} id={`${listId}-${n}`} role="option" aria-selected={o === value}
+              className={`${n === active ? 'active' : ''} ${o === value ? 'selected' : ''}`}
+              onMouseEnter={() => setActive(n)} onMouseDown={(e) => e.preventDefault()} onClick={() => pick(o)}
+            >
+              <span>{o}</span>{o === value && <Check size={18} aria-hidden="true" />}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
 function LeadForm() {
-  const [values, setValues] = useState({ name: '', phone: '', concern: '' })
+  const [values, setValues] = useState({ name: '', phone: '', area: '', concern: '' })
   const [errors, setErrors] = useState({})
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
@@ -76,6 +140,7 @@ function LeadForm() {
     const e = {}
     if (values.name.trim().length < 2) e.name = 'Please enter your name.'
     if (!/^(\+?91[\s-]?)?[6-9]\d{9}$/.test(values.phone.replace(/[\s-]/g, ''))) e.phone = 'Enter a valid 10-digit mobile number.'
+    if (values.area.trim().length < 2) e.area = 'Please enter your area.'
     if (!values.concern) e.concern = 'Please choose a concern.'
     return e
   }
@@ -87,7 +152,7 @@ function LeadForm() {
     if (Object.keys(e).length) return
     setFailed(false)
     if (!formEndpoint) {
-      const msg = `Clear aligner consultation enquiry\nName: ${values.name.trim()}\nMobile: ${values.phone.trim()}\nConcern: ${values.concern}`
+      const msg = `Clear aligner consultation enquiry\nName: ${values.name.trim()}\nMobile: ${values.phone.trim()}\nArea: ${values.area.trim()}\nConcern: ${values.concern}`
       window.open(`${clinic.whatsapp}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener')
       setSent(true)
       return
@@ -120,58 +185,48 @@ function LeadForm() {
 
   return (
     <form className="form-card" onSubmit={submit} noValidate>
-      <h2 className="form-title">{form.heading}</h2>
-      <label>Name
-        <input value={values.name} onChange={set('name')} autoComplete="name" placeholder="Your name" aria-invalid={!!errors.name} />
-        {errors.name && <em>{errors.name}</em>}
-      </label>
-      <label>Mobile Number
-        <input value={values.phone} onChange={set('phone')} type="tel" inputMode="numeric" autoComplete="tel" placeholder="10-digit mobile number" aria-invalid={!!errors.phone} />
-        {errors.phone && <em>{errors.phone}</em>}
-      </label>
-      <label>{form.concernLabel}
-        <span className="select">
-          <select value={values.concern} onChange={set('concern')} aria-invalid={!!errors.concern}>
-            <option value="" disabled>Select your concern</option>
-            {form.concerns.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
-          <ChevronDown size={18} aria-hidden="true" />
+      <h3 className="fc-title">Request a consultation</h3>
+      <div className="fc-row">
+        <label>Name
+          <span className={`field ${errors.name ? 'err' : ''}`}>
+            <User size={18} aria-hidden="true" />
+            <input value={values.name} onChange={set('name')} autoComplete="name" placeholder="Your full name" aria-invalid={!!errors.name} />
+          </span>
+          {errors.name && <em>{errors.name}</em>}
+        </label>
+        <label>Mobile Number
+          <span className={`field ${errors.phone ? 'err' : ''}`}>
+            <Phone size={18} aria-hidden="true" />
+            <b>+91</b>
+            <input value={values.phone} onChange={set('phone')} type="tel" inputMode="numeric" autoComplete="tel-national" placeholder="Mobile number" aria-invalid={!!errors.phone} />
+          </span>
+          {errors.phone && <em>{errors.phone}</em>}
+        </label>
+      </div>
+      <label>Area
+        <span className={`field ${errors.area ? 'err' : ''}`}>
+          <MapPin size={18} aria-hidden="true" />
+          <input value={values.area} onChange={set('area')} autoComplete="address-level2" placeholder="e.g. Perumbakkam, Medavakkam" aria-invalid={!!errors.area} />
         </span>
-        {errors.concern && <em>{errors.concern}</em>}
+        {errors.area && <em>{errors.area}</em>}
       </label>
+      <div className="dd-group">
+        <span id="concern-label" className="dd-label">{form.concernLabel}</span>
+        <Dropdown
+          labelledBy="concern-label"
+          placeholder="Select your concern"
+          options={form.concerns}
+          value={values.concern}
+          onChange={(c) => setValues((v) => ({ ...v, concern: c }))}
+          invalid={!!errors.concern}
+        />
+        {errors.concern && <em>{errors.concern}</em>}
+      </div>
       <button className="btn btn-primary btn-lg" type="submit" disabled={sending}>
-        {sending ? 'SENDING...' : form.submit}<Send size={18} />
+        {sending ? 'SENDING...' : form.submit}<ArrowRight size={18} />
       </button>
       {failed && <em className="form-fail">Could not send right now. Please call or WhatsApp us instead.</em>}
-      <div className="form-alt">
-        <a href={tel(callNumber)} className="btn btn-outline"><Phone size={17} />CALL NOW</a>
-        <a href={clinic.whatsapp} target="_blank" rel="noreferrer" className="btn btn-wa"><BrandIcon name="whatsapp" size={17} />WHATSAPP US</a>
-      </div>
     </form>
-  )
-}
-
-function Hero() {
-  return (
-    <>
-    <section className="top-section"><TopGallery /></section>
-    <section className="hero">
-      <div className="blob b1" /><div className="blob b2" />
-      <div className="container hero-grid">
-        <div className="hero-copy">
-          <span className="eyebrow hero-in" style={{ '--i': 0 }}>{hero.h1}</span>
-          <h1 className="hero-in" style={{ '--i': 1 }}>{hero.headline}</h1>
-          <p className="lead hero-in" style={{ '--i': 2 }}>{hero.text}</p>
-          <ul className="trust hero-in" style={{ '--i': 3 }}>
-            {hero.trust.map(([ic, t]) => <li key={t}><Icon name={ic} size={18} />{t}</li>)}
-          </ul>
-        </div>
-        <div id="enquire" className="hero-form hero-in" style={{ '--i': 2 }}>
-          <LeadForm />
-        </div>
-      </div>
-    </section>
-    </>
   )
 }
 
@@ -354,58 +409,102 @@ function WelcomeCard({ onClose }) {
   )
 }
 
-// Smile Transformations carousel. Sits at the very top of the page, above the lead form.
-function TopGallery() {
-  const rail = useRef(null)
-  const paused = useRef(false)
+// Framed before/after showcase for the hero. Cycles through the patient cases; a click opens the pop-up with call and WhatsApp buttons.
+function HeroShowcase() {
+  const cases = gallery.cases
+  const [i, setI] = useState(0)
   const [openCase, setOpenCase] = useState(null)
-  const slide = (dir) => {
-    const el = rail.current
-    if (el) el.scrollBy({ left: dir * (el.firstElementChild?.getBoundingClientRect().width ?? 320 + 20), behavior: 'smooth' })
-  }
-  // Auto-advance every few seconds, looping back to the first case; pauses while the visitor hovers, touches, focuses the rail or has a photo open.
+  const hold = useRef(false)
+  const go = (d) => setI((n) => (n + d + cases.length) % cases.length)
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined
-    const id = setInterval(() => {
-      const el = rail.current
-      if (!el || paused.current) return
-      if (el.scrollLeft + el.clientWidth >= el.scrollWidth - 4) el.scrollTo({ left: 0, behavior: 'smooth' })
-      else slide(1)
-    }, 3500)
+    const id = setInterval(() => { if (!hold.current) setI((n) => (n + 1) % cases.length) }, 3800)
     return () => clearInterval(id)
-  }, [])
-  const open = (c) => { paused.current = true; setOpenCase(c) }
-  const close = () => { paused.current = false; setOpenCase(null) }
+  }, [cases.length])
+  const open = (c) => { hold.current = true; setOpenCase(c) }
+  const close = () => { hold.current = false; setOpenCase(null) }
   return (
-    <div id="home" className="top-gallery">
-      <div className="container">
-        <div className="tg-head">
-          <Reveal as="h2">{gallery.heading}</Reveal>
-          <Reveal as="p" delay={80}>{gallery.text}</Reveal>
-        </div>
-        <div className="rail-wrap">
-          <button className="rail-btn l" onClick={() => slide(-1)} aria-label="Previous case"><ChevronLeft size={22} /></button>
-          <div
-            className="rail" ref={rail} tabIndex={0} aria-label="Smile transformation cases"
-            onMouseEnter={() => { paused.current = true }} onMouseLeave={() => { paused.current = !!openCase }}
-            onFocus={() => { paused.current = true }} onBlur={() => { paused.current = !!openCase }}
-            onTouchStart={() => { paused.current = true }} onTouchEnd={() => setTimeout(() => { paused.current = false }, 4000)}
-          >
-            {gallery.cases.map((c) => (
-              <figure key={c.title} className="case">
-                <button className={`case-img ${c.fit === 'contain' ? 'contain' : ''}`} onClick={() => open(c)} aria-label={`View ${c.title} larger`}>
-                  <img src={c.image} alt={c.alt} loading="lazy" />
-                  <span className="case-zoom"><ZoomIn size={18} /></span>
-                </button>
-                <figcaption>{c.title}</figcaption>
-              </figure>
+    <div className="hx-visual hero-in" style={{ '--i': 2 }} onMouseEnter={() => { hold.current = true }} onMouseLeave={() => { hold.current = !!openCase }}>
+      <div className="hx-card">
+        <div className="hx-stage">
+          <button className="hx-img" onClick={() => open(cases[i])} aria-label={`View ${cases[i].title} larger`}>
+            {cases.map((c, n) => (
+              <span key={c.title} className={`hx-slide ${n === i ? 'on' : ''}`} aria-hidden={n !== i}>
+                <img src={c.image} alt="" className="bg" loading={n === 0 ? 'eager' : 'lazy'} />
+                <img src={c.image} alt={n === i ? c.alt : ''} className="fg" loading={n === 0 ? 'eager' : 'lazy'} />
+              </span>
             ))}
+          </button>
+          <span className="hx-pill">BEFORE / AFTER</span>
+          <span className="hx-count">{String(i + 1).padStart(2, '0')}<small> / {String(cases.length).padStart(2, '0')}</small></span>
+        </div>
+        <div className="hx-bar">
+          <div className="hx-meta">
+            <b>{cases[i].title}</b>
+            <button className="hx-zoom" onClick={() => open(cases[i])}><ZoomIn size={15} />View larger</button>
           </div>
-          <button className="rail-btn r" onClick={() => slide(1)} aria-label="Next case"><ChevronRight size={22} /></button>
+          <div className="hx-ctrl">
+            <div className="hx-dots">
+              {cases.map((c, n) => <button key={c.title} className={n === i ? 'on' : ''} onClick={() => setI(n)} aria-label={`Show ${c.title}`} />)}
+            </div>
+            <button onClick={() => go(-1)} aria-label="Previous case"><ChevronLeft size={18} /></button>
+            <button onClick={() => go(1)} aria-label="Next case"><ChevronRight size={18} /></button>
+          </div>
         </div>
       </div>
       {openCase && <CasePopup item={openCase} onClose={close} />}
     </div>
+  )
+}
+
+function Hero() {
+  return (
+    <section id="home" className="hx">
+      <div className="container hx-grid">
+        <div className="hx-copy">
+          <span className="hx-eyebrow hero-in" style={{ '--i': 0 }}>{hero.h1}</span>
+          <h1 className="hero-in" style={{ '--i': 1 }}>
+            {hero.headlineLines.map((l, n) => <span key={l} className={n === 1 ? 'hx-accent' : ''}>{l}</span>)}
+          </h1>
+          <ul className="hx-chips hero-in" style={{ '--i': 2 }}>
+            {hero.trust.map(([, t]) => <li key={t}><i />{t}</li>)}
+          </ul>
+          <p className="hx-text hero-in" style={{ '--i': 3 }}>{hero.text}</p>
+          <div className="hx-btns hero-in" style={{ '--i': 4 }}>
+            <a href={tel(callNumber)} className="btn btn-primary btn-lg"><Phone size={18} />CALL NOW</a>
+            <a href={sectionPath('enquire')} className="btn btn-outline-light btn-lg">BOOK A CONSULTATION<ArrowUpRight size={18} /></a>
+          </div>
+        </div>
+        <HeroShowcase />
+      </div>
+    </section>
+  )
+}
+
+function Appointments() {
+  return (
+    <section id="enquire" className="section alt ap">
+      <div className="container ap-grid">
+        <div className="ap-copy">
+          <Reveal as="span" className="eyebrow ap-eye"><CalendarCheck size={14} />Consultation</Reveal>
+          <Reveal as="h2" delay={80}>Book Your Clear <span className="mark">Aligner</span> Consultation</Reveal>
+          <Reveal as="p" delay={140}>{options.text[1]}</Reveal>
+          <ul className="ap-list">
+            {options.points.map(([ic, t], n) => (
+              <Reveal as="li" key={t} delay={200 + n * 80}><span className="ap-ico"><Icon name={ic} size={20} /></span>{t}</Reveal>
+            ))}
+          </ul>
+          <Reveal delay={460} className="ap-talk">
+            <small>Prefer to talk right away?</small>
+            <div className="ap-btns">
+              <a href={tel(callNumber)} className="btn btn-outline"><Phone size={18} />CALL NOW</a>
+              <a href={clinic.whatsapp} target="_blank" rel="noreferrer" className="btn btn-wa"><BrandIcon name="whatsapp" size={18} />WHATSAPP US</a>
+            </div>
+          </Reveal>
+        </div>
+        <Reveal delay={120}><LeadForm /></Reveal>
+      </div>
+    </section>
   )
 }
 
@@ -504,6 +603,7 @@ export default function App() {
       <Navbar active={active} />
       <main>
         <Hero />
+        <Appointments />
         <Options />
         <Compare />
         <Why />
