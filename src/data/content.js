@@ -1,3 +1,8 @@
+import case1 from '../assets/T2.jpeg'
+import case2 from '../assets/T1.jpeg'
+import case3 from '../assets/T3.jpeg'
+import case4 from '../assets/T4.jpeg'
+
 // Copy from the client brief: "Dr Vel's Dentistry - Clear Aligner Landing Page" (page URL /clear-aligners/).
 export const clinic = {
   name: "Dr Vel's Dentistry",
@@ -111,13 +116,18 @@ export const journey = {
   ],
 }
 
-// Add genuine, consented patient cases here: { title, before: 'img/case1-before.jpg', after: 'img/case1-after.jpg' }.
-// Until the clinic supplies photos, the carousel shows labelled placeholders.
+// Patient cases from the clinic. Each image is already a before/after pair, so one image per case.
+// fit: 'contain' keeps a wide photo whole instead of cropping it to the square frame.
+// Add more as { title, image, alt }. Patient consent for marketing use must be on file before publishing.
 export const gallery = {
   heading: 'Smile Transformations',
   text: 'Explore actual patient cases and their clear aligner treatment journeys.',
-  cases: [],
-  slots: 3,
+  cases: [
+    { title: 'Smile transformation 1', image: case1, alt: 'Crowded front teeth before treatment and straightened teeth after treatment' },
+    { title: 'Smile transformation 2', image: case2, alt: 'Side-profile smile with a gap between the front teeth, before and after treatment', fit: 'contain' },
+    { title: 'Smile transformation 3', image: case3, alt: 'Uneven, crooked front teeth before treatment and an even, aligned smile after treatment' },
+    { title: 'Smile transformation 4', image: case4, alt: 'Spaced, uneven front teeth before treatment and an even, aligned smile after treatment' },
+  ],
 }
 
 export const faqs = [

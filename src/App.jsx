@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import {
   Phone, ArrowRight, BadgeCheck, Clock, HeartHandshake, Sparkles, Layers, ClipboardList, CalendarClock,
   Stethoscope, Users, Trophy, MessageCircle, ScanLine, CalendarCheck, Check, ChevronLeft, ChevronRight,
-  ChevronDown, CheckCircle2, ImageIcon, Send, MapPin, Mail, ShieldCheck, Smile, Menu, X,
+  ChevronDown, CheckCircle2, Send, MapPin, Mail, ShieldCheck, Smile, Menu, X,
 } from 'lucide-react'
 import {
   clinic, formEndpoint, nav, sectionIds, hero, form, options, compare, why, journey, gallery, faqs, final,
@@ -299,9 +299,6 @@ function Gallery() {
     }, 3500)
     return () => clearInterval(id)
   }, [])
-    const cards = gallery.cases.length
-    ? gallery.cases
-    : Array.from({ length: gallery.slots }, (_, i) => ({ title: `Patient case ${i + 1}`, pending: true }))
   return (
     <section className="section alt" id="gallery">
       <div className="container">
@@ -317,22 +314,12 @@ function Gallery() {
             onFocus={() => { paused.current = true }} onBlur={() => { paused.current = false }}
             onTouchStart={() => { paused.current = true }} onTouchEnd={() => setTimeout(() => { paused.current = false }, 4000)}
           >
-            {cards.map((c) => (
+            {gallery.cases.map((c) => (
               <figure key={c.title} className="case">
-                <div className="ba">
-                  {c.pending ? (
-                    <>
-                      <div className="ba-half"><ImageIcon size={28} strokeWidth={1.5} /><span>Before</span></div>
-                      <div className="ba-half"><ImageIcon size={28} strokeWidth={1.5} /><span>After</span></div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="ba-half"><img src={asset(c.before)} alt={`${c.title} before`} loading="lazy" /><span>Before</span></div>
-                      <div className="ba-half"><img src={asset(c.after)} alt={`${c.title} after`} loading="lazy" /><span>After</span></div>
-                    </>
-                  )}
+                <div className={`case-img ${c.fit === 'contain' ? 'contain' : ''}`}>
+                  <img src={c.image} alt={c.alt} loading="lazy" />
                 </div>
-                <figcaption>{c.title}{c.pending && <small>Photo to be supplied by the clinic</small>}</figcaption>
+                <figcaption>{c.title}</figcaption>
               </figure>
             ))}
           </div>
