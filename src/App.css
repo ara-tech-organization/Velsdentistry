@@ -485,3 +485,83 @@ h3 { font-size: 1.25rem; font-weight: 600; }
 }
 .field input { font-family: inherit; font-weight: 400; }
 .field input::placeholder { color: #8a8576; font-weight: 400; opacity: 1; }
+
+/* ---------- Lead form inside the welcome pop-up ---------- */
+.popup-card.compact { width: min(460px, 100%); max-height: calc(100vh - 24px); overflow-y: auto; text-align: left; }
+.wp-head { padding: 34px 56px 20px 24px; }
+.wp-body { display: grid; gap: 14px; padding: 18px 22px 22px; }
+.form-card.in-popup { gap: 14px; padding: 0; border: 0; border-radius: 0; box-shadow: none; background: transparent; }
+.form-card.in-popup .fc-row { grid-template-columns: 1fr; gap: 14px; }
+.form-card.in-popup.sent { padding: 20px 0; }
+.wp-body .wp-actions { margin: 0; }
+.dd-list { max-height: 220px; }
+@media (max-width: 480px) {
+  .wp-head { padding: 26px 52px 16px 18px; }
+  .wp-body { padding: 16px 16px 20px; }
+}
+
+/* ---------- Phone fix: grid columns may shrink below their content, so nothing is clipped at the right ---------- */
+.ap-grid > *, .hx > *, .hx-grid > *, .fc-row > *, .form-card > * { min-width: 0; }
+.form-card, .ap-copy, .ap-btns, .ap-btns .btn { max-width: 100%; }
+@media (max-width: 1000px) {
+  .ap-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 700px) {
+  .fc-row { grid-template-columns: minmax(0, 1fr); }
+}
+.field input { flex: 1; min-width: 0; }
+.form-card label, .form-card .dd-group { grid-template-columns: minmax(0, 1fr); min-width: 0; }
+.form-card .field { min-width: 0; max-width: 100%; }
+
+/* ---------- Tablet hero: keep each headline line on one row, give the card room ---------- */
+@media (min-width: 701px) and (max-width: 1100px) {
+  .hx-grid { grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr); gap: 32px; }
+  .hx h1 { font-size: clamp(1.6rem, 3.5vw, 2.3rem); line-height: 1.2; }
+  .hx-visual { max-width: 400px; margin-right: 16px; }
+  .hx-visual::before { inset: 14px -14px -14px 14px; }
+  .hx-count { font-size: 0.78rem; padding: 4px 11px; }
+  .hx-pill { font-size: 0.6rem; padding: 5px 11px; }
+}
+
+/* ---------- Tablet form: name + mobile side by side, card centred at a comfortable width ---------- */
+@media (min-width: 701px) and (max-width: 1000px) {
+  .ap-grid { gap: 32px; }
+  .ap-copy { max-width: 720px; margin-inline: auto; }
+  .form-card:not(.in-popup) { width: 100%; max-width: 720px; margin-inline: auto; padding: 32px 36px; gap: 16px; }
+  .form-card:not(.in-popup) .fc-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+  .ap-btns .btn { flex: 1 1 0; }
+}
+
+/* ---------- Thank-you page ---------- */
+.ty { display: grid; place-items: center; min-height: calc(100vh - 76px - 260px); padding: 64px 0; background: var(--cream, #faf7ee); }
+.ty-card { display: grid; justify-items: center; gap: 16px; max-width: 680px; padding: 48px 32px; text-align: center; border: 1px solid var(--border); border-top: 6px solid var(--primary); border-radius: 28px; background: #fff; box-shadow: var(--shadow-lg); }
+.ty-card > svg { color: #111; background: var(--primary); border-radius: 50%; padding: 12px; box-sizing: content-box; }
+.ty-card h1 { margin: 0; color: var(--ink); font-size: clamp(1.5rem, 4vw, 2.2rem); line-height: 1.25; }
+.ty-card p { max-width: 520px; margin: 0; }
+.ty-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 8px; }
+.ty-back { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; color: var(--ink); font-weight: 500; text-decoration: underline; text-underline-offset: 4px; }
+@media (max-width: 480px) { .ty-card { padding: 36px 20px; margin-inline: 16px; width: calc(100% - 32px); } .ty-btns .btn { flex: 1 1 100%; } }
+
+/* ---------- Dropdown opens upward when needed; thin themed scrollbars ---------- */
+.dd.up .dd-list { top: auto; bottom: calc(100% + 8px); transform-origin: bottom; animation-name: ddUp; }
+@keyframes ddUp { from { opacity: 0; transform: translateY(8px) scaleY(0.96); } }
+.dd-list { max-height: none; }
+.dd-list, .popup-card, .form-card { scrollbar-width: thin; scrollbar-color: var(--primary) transparent; }
+.dd-list::-webkit-scrollbar, .popup-card::-webkit-scrollbar, .form-card::-webkit-scrollbar { width: 6px; height: 6px; }
+.dd-list::-webkit-scrollbar-track, .popup-card::-webkit-scrollbar-track, .form-card::-webkit-scrollbar-track { background: transparent; margin: 10px 0; }
+.dd-list::-webkit-scrollbar-thumb, .popup-card::-webkit-scrollbar-thumb, .form-card::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 999px; }
+.dd-list::-webkit-scrollbar-button, .popup-card::-webkit-scrollbar-button { display: none; }
+.popup-card { scrollbar-gutter: auto; }
+html { scrollbar-width: thin; scrollbar-color: var(--primary) #111; }
+html::-webkit-scrollbar { width: 8px; }
+html::-webkit-scrollbar-track { background: #111; }
+html::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 999px; border: 2px solid #111; }
+html::-webkit-scrollbar-button { display: none; }
+
+/* ---------- Hero card: one clean border (no offset outline crossing the card) ---------- */
+.hx-visual::before { content: none !important; }
+.hx-card { padding: 10px; border: 1.5px solid var(--primary); border-radius: 26px; background: #161616; backdrop-filter: none; box-shadow: 0 0 0 6px rgba(241, 191, 10, 0.08), 0 28px 70px rgba(0, 0, 0, 0.6); }
+.hx-stage { border-radius: 18px; border: 0; background: #0b0b0b; }
+.hx-bar { padding: 14px 8px 6px; }
+@media (min-width: 701px) and (max-width: 1100px) { .hx-visual { margin-right: 0; } }
+@media (max-width: 480px) { .hx-card { padding: 8px; border-radius: 22px; } .hx-stage { border-radius: 15px; } }

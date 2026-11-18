@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import {
   Phone, ArrowRight, BadgeCheck, Clock, HeartHandshake, Sparkles, Layers, ClipboardList, CalendarClock,
   Stethoscope, Users, Trophy, MessageCircle, ScanLine, CalendarCheck, Check, ChevronLeft, ChevronRight,
-  ChevronDown, CheckCircle2, ArrowUpRight, User, ZoomIn, MapPin, Mail, ShieldCheck, Smile, Menu, X,
+  ChevronDown, CheckCircle2, ArrowUpRight, ArrowLeft, User, ZoomIn, MapPin, Mail, ShieldCheck, Smile, Menu, X,
 } from 'lucide-react'
 import {
   clinic, formEndpoint, nav, sectionIds, hero, form, options, compare, why, journey, gallery, faqs, final,
@@ -67,6 +67,7 @@ function Navbar({ active }) {
 function Dropdown({ labelledBy, placeholder, options, value, onChange, invalid }) {
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(0)
+  const [place, setPlace] = useState({ up: false, max: 280 })
   const wrap = useRef(null)
   const listId = useId()
 
@@ -77,7 +78,16 @@ function Dropdown({ labelledBy, placeholder, options, value, onChange, invalid }
     return () => document.removeEventListener('mousedown', away)
   }, [open])
 
-  const show = () => { setActive(Math.max(0, options.indexOf(value))); setOpen(true) }
+  // Open upward when there is no room below (always inside the pop-up card, whose edge would clip the list).
+  const show = () => {
+    const r = wrap.current.getBoundingClientRect()
+    const below = window.innerHeight - r.bottom - 16
+    const above = r.top - 16
+    const up = !!wrap.current.closest('.popup-card') || (below < 270 && above > below)
+    setPlace({ up, max: Math.max(160, Math.min(280, up ? above : below)) })
+    setActive(Math.max(0, options.indexOf(value)))
+    setOpen(true)
+  }
   const pick = (o) => { onChange(o); setOpen(false) }
 
   const onKeyDown = (e) => {
@@ -99,7 +109,7 @@ function Dropdown({ labelledBy, placeholder, options, value, onChange, invalid }
   }
 
   return (
-    <div className={`dd ${open ? 'open' : ''}`} ref={wrap}>
+    <div className={`dd ${open ? 'open' : ''} ${place.up ? 'up' : ''}`} ref={wrap}>
       <button
         type="button" className={`field dd-btn ${invalid ? 'err' : ''}`} role="combobox"
         aria-haspopup="listbox" aria-expanded={open} aria-controls={listId} aria-labelledby={labelledBy}
@@ -111,7 +121,7 @@ function Dropdown({ labelledBy, placeholder, options, value, onChange, invalid }
         <ChevronDown size={18} aria-hidden="true" className="chev" />
       </button>
       {open && (
-        <ul id={listId} className="dd-list" role="listbox" aria-labelledby={labelledBy}>
+        <ul id={listId} className="dd-list" role="listbox" aria-labelledby={labelledBy} style={{ maxHeight: place.max }}>
           {options.map((o, n) => (
             <li
               key={o} id={`${listId}-${n}`} role="option" aria-selected={o === value}
@@ -127,7 +137,8 @@ function Dropdown({ labelledBy, placeholder, options, value, onChange, invalid }
   )
 }
 
-function LeadForm() {
+function LeadForm({ compact = false }) {
+  const labelId = useId()
   const [values, setValues] = useState({ name: '', phone: '', area: '', concern: '' })
   const [errors, setErrors] = useState({})
   const [sending, setSending] = useState(false)
@@ -165,7 +176,9 @@ function LeadForm() {
         body: JSON.stringify({ ...values, source: 'clear-aligners-landing' }),
       })
       if (!res.ok) throw new Error('bad status')
-      setSent(true)
+      const out = await res.json().catch(() => null)
+      if (out && out.success === false) throw new Error(out.message || 'not stored')
+      window.location.assign(`${import.meta.env.BASE_URL}thankyou`)
     } catch {
       setFailed(true)
     } finally {
@@ -184,8 +197,8 @@ function LeadForm() {
   }
 
   return (
-    <form className="form-card" onSubmit={submit} noValidate>
-      <h3 className="fc-title">Request a consultation</h3>
+    <form className={`form-card${compact ? ' in-popup' : ''}`} onSubmit={submit} noValidate>
+      {!compact && <h3 className="fc-title">Request a consultation</h3>}
       <div className="fc-row">
         <label>Name
           <span className={`field ${errors.name ? 'err' : ''}`}>
@@ -211,9 +224,9 @@ function LeadForm() {
         {errors.area && <em>{errors.area}</em>}
       </label>
       <div className="dd-group">
-        <span id="concern-label" className="dd-label">{form.concernLabel}</span>
+        <span id={labelId} className="dd-label">{form.concernLabel}</span>
         <Dropdown
-          labelledBy="concern-label"
+          labelledBy={labelId}
           placeholder="Select your concern"
           options={form.concerns}
           value={values.concern}
@@ -397,12 +410,11 @@ function WelcomeCard({ onClose }) {
           <h3 id="welcome-title">{form.heading}</h3>
         </div>
         <div className="wp-body">
-          <p>{final.text}</p>
+          <LeadForm compact />
           <div className="wp-actions">
             <a href={tel(callNumber)} className="btn btn-dark"><Phone size={18} />CALL NOW</a>
             <a href={`${clinic.whatsapp}?text=${msg}`} target="_blank" rel="noreferrer" className="btn btn-wa"><BrandIcon name="whatsapp" size={18} />WHATSAPP</a>
           </div>
-          <a href={sectionPath('enquire')} className="btn btn-primary btn-lg wp-book" onClick={onClose}><CalendarCheck size={18} />BOOK A CONSULTATION</a>
         </div>
       </div>
     </div>
@@ -596,7 +608,7 @@ function WhatsAppFloat() {
   )
 }
 
-export default function App() {
+function LandingPage() {
   const active = useScrollSpy(sectionIds)
   return (
     <>
@@ -617,4 +629,47 @@ export default function App() {
       <WelcomePopup />
     </>
   )
+}
+
+// Separate /thankyou page: shown after a lead is sent (also usable as a conversion-tracking URL).
+function ThankYou() {
+  const msg = encodeURIComponent("Hi Dr Vel's Dentistry, I just submitted a clear aligner enquiry.")
+  useEffect(() => {
+    document.title = "Thank you | Dr Vel's Dentistry"
+    const meta = document.createElement('meta')
+    meta.name = 'robots'
+    meta.content = 'noindex'
+    document.head.appendChild(meta)
+    window.scrollTo(0, 0)
+    return () => meta.remove()
+  }, [])
+  return (
+    <>
+      <header className="nav">
+        <div className="container nav-inner">
+          <a href={sectionPath('home')} className="brand"><img src={logo} alt="Dr Vel's Dentistry" /></a>
+          <a href={tel(callNumber)} className="nav-call" aria-label={`Call ${callNumber}`}><Phone size={18} /></a>
+        </div>
+      </header>
+      <main className="ty">
+        <div className="container ty-card" role="status">
+          <CheckCircle2 size={72} strokeWidth={1.5} aria-hidden="true" />
+          <span className="eyebrow">Enquiry received</span>
+          <h1>{form.success}</h1>
+          <p>Our team will call you to confirm your clear aligner consultation. If it is urgent, you can reach us right now.</p>
+          <div className="ty-btns">
+            <a href={tel(callNumber)} className="btn btn-dark btn-lg"><Phone size={18} />CALL NOW</a>
+            <a href={`${clinic.whatsapp}?text=${msg}`} target="_blank" rel="noreferrer" className="btn btn-wa btn-lg"><BrandIcon name="whatsapp" size={18} />WHATSAPP US</a>
+          </div>
+          <a href={sectionPath('home')} className="ty-back"><ArrowLeft size={16} />Back to home</a>
+        </div>
+      </main>
+      <Footer />
+    </>
+  )
+}
+
+export default function App() {
+  const onThanks = window.location.pathname.replace(/\/+$/, '').toLowerCase().endsWith('/thankyou')
+  return onThanks ? <ThankYou /> : <LandingPage />
 }

@@ -1,3 +1,4 @@
+import case0 from '../assets/T5.jpeg'
 import case1 from '../assets/T2.jpeg'
 import case2 from '../assets/T1.jpeg'
 import case3 from '../assets/T3.jpeg'
@@ -19,7 +20,7 @@ export const clinic = {
 
 // Optional: set to a form endpoint (Formspree, Google Apps Script, CRM webhook) to POST leads as JSON.
 // While empty, a valid enquiry opens WhatsApp with the details pre-filled so no lead is lost.
-export const formEndpoint = ''
+export const formEndpoint = 'https://drvelsdentistry.com/clear-aligner/api/email.php'
 
 // Top menu: [label, section id]. 'home' is the hero and lead form.
 export const nav = [
@@ -125,10 +126,11 @@ export const gallery = {
   heading: 'Smile Transformations',
   text: 'Explore actual patient cases and their clear aligner treatment journeys.',
   cases: [
-    { title: 'Smile transformation 1', image: case1, alt: 'Crowded front teeth before treatment and straightened teeth after treatment' },
-    { title: 'Smile transformation 2', image: case2, alt: 'Side-profile smile with a gap between the front teeth, before and after treatment' },
-    { title: 'Smile transformation 3', image: case3, alt: 'Uneven, crooked front teeth before treatment and an even, aligned smile after treatment' },
-    { title: 'Smile transformation 4', image: case4, alt: 'Spaced, uneven front teeth before treatment and an even, aligned smile after treatment' },
+    { title: 'Smile transformation 1', image: case0, alt: 'Side-profile smile with a gap between the upper front teeth before treatment and an even, closed smile after treatment' },
+    { title: 'Smile transformation 2', image: case1, alt: 'Crowded front teeth before treatment and straightened teeth after treatment' },
+    { title: 'Smile transformation 3', image: case2, alt: 'Side-profile smile with a gap between the front teeth, before and after treatment' },
+    { title: 'Smile transformation 4', image: case3, alt: 'Uneven, crooked front teeth before treatment and an even, aligned smile after treatment' },
+    { title: 'Smile transformation 5', image: case4, alt: 'Spaced, uneven front teeth before treatment and an even, aligned smile after treatment' },
   ],
 }
 
